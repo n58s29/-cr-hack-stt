@@ -5,571 +5,850 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>(Cr)Hack! Analyzer</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #08090c;
-            --surface: #111318;
-            --surface-2: #191c24;
-            --surface-3: #1f2330;
-            --border: #262a38;
-            --border-light: #333851;
-            --text: #e6e8f0;
-            --text-muted: #6b7194;
-            --text-dim: #464c6e;
-
-            --crack-green: #00e87b;
-            --crack-green-dim: rgba(0, 232, 123, 0.08);
-            --crack-green-glow: rgba(0, 232, 123, 0.3);
-            --crack-red: #ff4d6a;
-            --crack-red-dim: rgba(255, 77, 106, 0.08);
-            --crack-yellow: #fbbf24;
-            --crack-yellow-dim: rgba(251, 191, 36, 0.08);
-            --crack-blue: #38bdf8;
-            --crack-blue-dim: rgba(56, 189, 248, 0.08);
-            --crack-purple: #a78bfa;
-            --crack-purple-dim: rgba(167, 139, 250, 0.08);
-            --crack-orange: #fb923c;
-            --crack-orange-dim: rgba(251, 146, 60, 0.08);
-
-            --success: #34d399;
-            --error: #f87171;
-            --radius: 14px;
+            --bg: #0a0a0f;
+            --surface: #12121c;
+            --surface-2: #1a1a2e;
+            --surface-3: #222240;
+            --border: #2a2a45;
+            --text: #eeeef5;
+            --text-muted: #7777aa;
+            --neon-green: #00ff87;
+            --neon-pink: #ff2d78;
+            --neon-blue: #00d4ff;
+            --neon-yellow: #ffe156;
+            --neon-orange: #ff8a3d;
+            --neon-purple: #b44dff;
+            --score-red: #ff3355;
+            --score-orange: #ff8a3d;
+            --score-yellow: #ffe156;
+            --score-blue: #00d4ff;
+            --score-green: #00ff87;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'DM Sans', sans-serif;
+            font-family: 'Outfit', sans-serif;
             background: var(--bg);
             color: var(--text);
             min-height: 100vh;
-            line-height: 1.6;
+            overflow-x: hidden;
         }
 
-        body::after {
+        /* ── Animated grid background ── */
+        body::before {
             content: '';
             position: fixed;
             inset: 0;
-            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+            background:
+                linear-gradient(rgba(0,255,135,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,255,135,0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
             pointer-events: none;
-            z-index: 9999;
+            z-index: 0;
         }
+
+        .app { position: relative; z-index: 1; }
 
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
-            padding: 32px 20px 80px;
+            padding: 24px 20px 80px;
         }
 
-        /* ── Header ── */
+        /* ═══════════════════════════════════
+           HEADER
+        ═══════════════════════════════════ */
         .header {
             text-align: center;
-            margin-bottom: 36px;
-            padding-bottom: 28px;
-            border-bottom: 1px solid var(--border);
+            padding: 40px 0 32px;
+            position: relative;
         }
 
-        .header .logo {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: clamp(2rem, 5vw, 2.8rem);
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--neon-green), transparent);
+        }
+
+        .logo {
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: clamp(2.4rem, 7vw, 3.6rem);
             font-weight: 700;
-            letter-spacing: -0.05em;
-            margin-bottom: 4px;
+            letter-spacing: -0.03em;
+            line-height: 1;
+            margin-bottom: 8px;
         }
 
-        .header .logo .paren { color: var(--crack-green); }
-        .header .logo .hack { color: var(--text); }
-        .header .logo .bang { color: var(--crack-red); }
+        .logo .cr { color: var(--neon-green); text-shadow: 0 0 20px rgba(0,255,135,0.4); }
+        .logo .hack { color: var(--text); }
+        .logo .bang { color: var(--neon-pink); text-shadow: 0 0 20px rgba(255,45,120,0.4); }
+        .logo .paren {
+            color: var(--neon-green);
+            text-shadow: 0 0 20px rgba(0,255,135,0.4);
+            font-weight: 400;
+        }
 
-        .header .subtitle {
-            font-family: 'JetBrains Mono', monospace;
+        .tagline {
+            font-family: 'Fira Code', monospace;
             font-size: 0.72rem;
-            text-transform: uppercase;
-            letter-spacing: 0.18em;
             color: var(--text-muted);
-            margin-top: 4px;
+            letter-spacing: 0.08em;
         }
 
-        /* ── API Key ── */
-        .key-section {
+        .tagline span { color: var(--neon-green); }
+
+        /* ═══════════════════════════════════
+           SETUP ZONE (key + upload)
+        ═══════════════════════════════════ */
+        .setup {
+            display: grid;
+            grid-template-columns: 1fr 1.6fr;
+            gap: 16px;
+            margin: 32px 0;
+            align-items: start;
+        }
+
+        .key-card {
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 18px;
-            margin-bottom: 24px;
+            border-radius: 16px;
+            padding: 20px;
         }
 
-        .key-header {
+        .key-card label {
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 4px;
-        }
-
-        .key-header h3 {
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-
-        .key-dot {
-            width: 8px; height: 8px;
-            border-radius: 50%;
-            background: var(--error);
-            transition: background 0.3s;
-        }
-
-        .key-dot.active { background: var(--success); }
-
-        .key-hint {
-            font-size: 0.75rem;
+            gap: 6px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.7rem;
             color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
             margin-bottom: 10px;
-            line-height: 1.5;
         }
 
-        .key-row {
-            display: flex;
-            gap: 10px;
+        .key-card .dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: #ff3355;
+            transition: all 0.4s;
         }
 
-        .key-row input {
-            flex: 1;
-            padding: 11px 14px;
+        .key-card .dot.on {
+            background: var(--neon-green);
+            box-shadow: 0 0 8px rgba(0,255,135,0.5);
+        }
+
+        .key-card input {
+            width: 100%;
+            padding: 12px 14px;
             background: var(--bg);
             border: 1px solid var(--border);
             border-radius: 10px;
             color: var(--text);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.78rem;
             outline: none;
-            transition: border-color 0.2s;
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
 
-        .key-row input:focus { border-color: var(--crack-green); }
+        .key-card input:focus {
+            border-color: var(--neon-green);
+            box-shadow: 0 0 12px rgba(0,255,135,0.15);
+        }
 
         /* ── Dropzone ── */
-        .dropzone {
+        .drop-card {
+            background: var(--surface);
             border: 2px dashed var(--border);
-            border-radius: var(--radius);
-            padding: 44px 24px;
+            border-radius: 16px;
+            padding: 36px 24px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s;
-            background: var(--surface);
             position: relative;
             overflow: hidden;
-            margin-bottom: 16px;
+            transition: all 0.4s;
         }
 
-        .dropzone::before {
-            content: '';
+        .drop-card:hover, .drop-card.dragover {
+            border-color: var(--neon-pink);
+            box-shadow: 0 0 30px rgba(255,45,120,0.1);
+        }
+
+        .drop-card.has-file {
+            border-style: solid;
+            border-color: var(--neon-green);
+            box-shadow: 0 0 20px rgba(0,255,135,0.08);
+        }
+
+        .drop-card input[type="file"] {
             position: absolute;
             inset: 0;
-            background: radial-gradient(circle at 50% 50%, var(--crack-green-dim), transparent 70%);
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .drop-icon {
+            font-size: 2.6rem;
+            margin-bottom: 8px;
+            display: block;
+            transition: transform 0.3s;
+        }
+
+        .drop-card:hover .drop-icon { transform: scale(1.1) rotate(-5deg); }
+
+        .drop-title {
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .drop-hint {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .file-badge {
+            display: none;
+            margin-top: 12px;
+            padding: 8px 16px;
+            background: rgba(0,255,135,0.08);
+            border: 1px solid rgba(0,255,135,0.2);
+            border-radius: 99px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.75rem;
+            color: var(--neon-green);
+        }
+
+        .file-badge.visible { display: inline-block; }
+
+        /* ═══════════════════════════════════
+           LAUNCH BUTTON
+        ═══════════════════════════════════ */
+        .launch-zone {
+            text-align: center;
+            margin: 8px 0 24px;
+        }
+
+        .launch-btn {
+            display: none;
+            padding: 18px 60px;
+            border: none;
+            border-radius: 60px;
+            background: linear-gradient(135deg, var(--neon-green), #00cc6a);
+            color: #0a0a0f;
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .launch-btn.visible { display: inline-block; }
+
+        .launch-btn::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            background: linear-gradient(135deg, var(--neon-green), var(--neon-blue), var(--neon-pink));
+            border-radius: inherit;
+            z-index: -1;
             opacity: 0;
             transition: opacity 0.3s;
         }
 
-        .dropzone:hover, .dropzone.dragover { border-color: var(--crack-green); }
-        .dropzone:hover::before, .dropzone.dragover::before { opacity: 1; }
+        .launch-btn:hover::before { opacity: 1; }
 
-        .dropzone-icon { font-size: 2.2rem; margin-bottom: 10px; display: block; position: relative; }
-        .dropzone-text { position: relative; font-size: 0.92rem; font-weight: 500; }
-        .dropzone-hint { position: relative; font-size: 0.78rem; color: var(--text-muted); margin-top: 6px; }
-        .dropzone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+        .launch-btn:hover {
+            transform: scale(1.04);
+            box-shadow: 0 0 40px rgba(0,255,135,0.3);
+        }
 
-        /* ── File info ── */
-        .file-info {
+        .launch-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* ═══════════════════════════════════
+           WHEEL ZONE (hero during compute)
+        ═══════════════════════════════════ */
+        .wheel-zone {
             display: none;
-            background: var(--surface);
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        .wheel-zone.visible { display: block; }
+
+        .wheel-container {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            margin: 0 auto 24px;
+        }
+
+        #wheelCanvas {
+            width: 280px;
+            height: 280px;
+            filter: drop-shadow(0 0 20px rgba(0,255,135,0.2));
+        }
+
+        .wheel-pointer {
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 20px solid var(--neon-pink);
+            filter: drop-shadow(0 0 6px rgba(255,45,120,0.6));
+            z-index: 2;
+        }
+
+        .wheel-center-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text);
+            text-shadow: 0 0 20px rgba(0,0,0,0.8);
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .pipe-steps {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .pipe-chip {
+            padding: 8px 18px;
+            border-radius: 99px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.72rem;
+            font-weight: 500;
             border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 14px 18px;
-            margin-bottom: 16px;
-            align-items: center;
-            gap: 12px;
+            background: var(--surface);
+            color: var(--text-muted);
+            transition: all 0.4s;
         }
 
-        .file-info.visible { display: flex; }
-        .file-info .fi-icon { font-size: 1.4rem; flex-shrink: 0; }
-        .file-info .fi-details { flex: 1; min-width: 0; }
-
-        .file-info .fi-name {
-            font-weight: 600; font-size: 0.85rem;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        .pipe-chip.active {
+            border-color: var(--neon-green);
+            color: var(--neon-green);
+            background: rgba(0,255,135,0.06);
+            animation: chipPulse 1.5s infinite;
         }
 
-        .file-info .fi-meta { font-size: 0.75rem; color: var(--text-muted); margin-top: 1px; }
-
-        .file-info .fi-remove {
-            background: none; border: none; color: var(--text-muted);
-            cursor: pointer; font-size: 1.1rem; padding: 4px; transition: color 0.2s;
+        .pipe-chip.done {
+            border-color: rgba(0,255,135,0.3);
+            color: var(--neon-green);
+            background: rgba(0,255,135,0.06);
         }
 
-        .file-info .fi-remove:hover { color: var(--error); }
+        .pipe-chip.error {
+            border-color: var(--neon-pink);
+            color: var(--neon-pink);
+        }
 
-        .size-warning {
+        @keyframes chipPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(0,255,135,0.2); }
+            50% { box-shadow: 0 0 0 6px rgba(0,255,135,0); }
+        }
+
+        /* ═══════════════════════════════════
+           SCORE REVEAL
+        ═══════════════════════════════════ */
+        .score-reveal {
             display: none;
-            font-size: 0.78rem;
-            color: var(--crack-yellow);
-            padding: 10px 14px;
-            background: var(--crack-yellow-dim);
-            border: 1px solid rgba(251, 191, 36, 0.2);
-            border-radius: 10px;
-            margin-bottom: 16px;
+            text-align: center;
+            padding: 40px 20px;
+            margin: 16px 0;
+            background: var(--surface);
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
         }
 
-        .size-warning.visible { display: block; }
-
-        /* ── Trame toggle ── */
-        .trame-toggle { display: none; margin-bottom: 16px; }
-        .trame-toggle.visible { display: block; }
-
-        .trame-btn {
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: 10px; padding: 10px 16px; color: var(--text-muted);
-            font-family: inherit; font-size: 0.8rem; cursor: pointer;
-            transition: all 0.2s; width: 100%; text-align: left;
+        .score-reveal.visible {
+            display: block;
+            animation: scoreRevealIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .trame-btn:hover { border-color: var(--crack-green); color: var(--text); }
-
-        .trame-content { display: none; margin-top: 8px; }
-        .trame-content.visible { display: block; }
-
-        .trame-content textarea {
-            width: 100%; min-height: 180px; padding: 14px;
-            background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
-            color: var(--text); font-family: 'DM Sans', sans-serif;
-            font-size: 0.82rem; line-height: 1.6; outline: none; resize: vertical;
+        @keyframes scoreRevealIn {
+            0% { opacity: 0; transform: scale(0.8); }
+            50% { transform: scale(1.02); }
+            100% { opacity: 1; transform: scale(1); }
         }
 
-        .trame-content textarea:focus { border-color: var(--crack-green); }
-
-        /* ── Launch ── */
-        .launch-btn {
-            display: none; width: 100%; padding: 18px; border: none;
-            border-radius: var(--radius); background: var(--crack-green);
-            color: #08090c; font-family: 'Space Grotesk', sans-serif;
-            font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em;
-            cursor: pointer; transition: all 0.2s; margin-bottom: 8px;
+        .score-reveal::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 0%, var(--score-glow, rgba(0,255,135,0.08)), transparent 70%);
+            pointer-events: none;
         }
 
-        .launch-btn.visible { display: block; }
-        .launch-btn:hover { box-shadow: 0 0 40px var(--crack-green-glow); }
-        .launch-btn:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
-
-        /* ── Pipeline ── */
-        .pipeline { display: none; margin: 24px 0; }
-        .pipeline.visible { display: block; }
-
-        .pipe-step {
-            display: flex; align-items: center; gap: 12px;
-            padding: 12px 16px; background: var(--surface);
-            border: 1px solid var(--border); border-radius: 10px;
-            margin-bottom: 8px; transition: all 0.3s;
+        .score-big {
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: clamp(4rem, 12vw, 7rem);
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: -0.04em;
+            position: relative;
         }
 
-        .pipe-step .pipe-num {
-            width: 26px; height: 26px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; font-weight: 600;
-            background: var(--surface-2); border: 1px solid var(--border);
-            color: var(--text-muted); flex-shrink: 0; transition: all 0.3s;
+        .score-big .of-ten {
+            font-size: 0.3em;
+            color: var(--text-muted);
+            font-weight: 400;
+            vertical-align: super;
         }
 
-        .pipe-step.active .pipe-num { border-color: var(--crack-green); color: var(--crack-green); background: var(--crack-green-dim); }
-        .pipe-step.done .pipe-num { border-color: var(--success); color: var(--success); background: rgba(52,211,153,0.1); }
-        .pipe-step.error .pipe-num { border-color: var(--error); color: var(--error); }
-
-        .pipe-label { font-size: 0.85rem; font-weight: 500; flex: 1; }
-        .pipe-status { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text-muted); }
-        .pipe-step.active .pipe-status { color: var(--crack-green); }
-        .pipe-step.done .pipe-status { color: var(--success); }
-        .pipe-step.error .pipe-status { color: var(--error); }
-
-        .mini-spinner {
-            display: none; width: 14px; height: 14px;
-            border: 2px solid var(--border); border-top-color: var(--crack-green);
-            border-radius: 50%; animation: spin 0.7s linear infinite;
+        .score-verdict-text {
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-top: 8px;
         }
 
-        .pipe-step.active .mini-spinner { display: inline-block; }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* ── Score Card ── */
-        .score-card {
-            display: none; text-align: center; padding: 32px 24px;
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--radius); margin-bottom: 16px;
+        .score-reason-text {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            margin-top: 8px;
+            max-width: 520px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.7;
         }
 
-        .score-card.visible { display: block; animation: fadeUp 0.5s ease-out; }
-
-        .score-label {
-            font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
-            text-transform: uppercase; letter-spacing: 0.15em; color: var(--text-muted); margin-bottom: 8px;
-        }
-
-        .score-value {
-            font-family: 'Space Grotesk', sans-serif; font-size: 4rem;
-            font-weight: 700; letter-spacing: -0.04em; line-height: 1;
-        }
-
-        .score-max { font-size: 1.4rem; color: var(--text-muted); font-weight: 400; }
-        .score-verdict { font-size: 1rem; font-weight: 600; margin-top: 10px; }
-
-        .score-reasoning {
-            font-size: 0.82rem; color: var(--text-muted); margin-top: 8px;
-            max-width: 500px; margin-left: auto; margin-right: auto; line-height: 1.6;
-        }
-
-        /* ── Results ── */
+        /* ═══════════════════════════════════
+           RESULT SECTIONS
+        ═══════════════════════════════════ */
         .results { display: none; }
         .results.visible { display: block; }
 
-        .result-section {
-            margin-bottom: 12px; border: 1px solid var(--border);
-            border-radius: var(--radius); overflow: hidden;
-            animation: fadeUp 0.4s ease-out both;
+        .result-block {
+            margin-bottom: 20px;
+            animation: blockIn 0.5s ease-out both;
         }
 
-        .result-section:nth-child(2) { animation-delay: 0.06s; }
-        .result-section:nth-child(3) { animation-delay: 0.12s; }
-        .result-section:nth-child(4) { animation-delay: 0.18s; }
-        .result-section:nth-child(5) { animation-delay: 0.24s; }
+        .result-block:nth-child(2) { animation-delay: 0.08s; }
+        .result-block:nth-child(3) { animation-delay: 0.16s; }
+        .result-block:nth-child(4) { animation-delay: 0.24s; }
 
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(10px); }
+        @keyframes blockIn {
+            from { opacity: 0; transform: translateY(16px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .result-section-header {
-            display: flex; align-items: center; gap: 10px;
-            padding: 14px 18px; background: var(--surface);
-            cursor: pointer; user-select: none; transition: background 0.2s;
+        .block-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
         }
 
-        .result-section-header:hover { background: var(--surface-2); }
-
-        .section-num {
-            font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; font-weight: 600;
-            width: 22px; height: 22px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        .block-tag {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.65rem;
+            font-weight: 500;
+            padding: 4px 12px;
+            border-radius: 99px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
         }
 
-        .section-num.green { background: var(--crack-green-dim); color: var(--crack-green); border: 1px solid rgba(0,232,123,0.2); }
-        .section-num.blue { background: var(--crack-blue-dim); color: var(--crack-blue); border: 1px solid rgba(56,189,248,0.2); }
-        .section-num.purple { background: var(--crack-purple-dim); color: var(--crack-purple); border: 1px solid rgba(167,139,250,0.2); }
-        .section-num.orange { background: var(--crack-orange-dim); color: var(--crack-orange); border: 1px solid rgba(251,146,60,0.2); }
-        .section-num.red { background: var(--crack-red-dim); color: var(--crack-red); border: 1px solid rgba(255,77,106,0.2); }
+        .tag-green { background: rgba(0,255,135,0.1); color: var(--neon-green); border: 1px solid rgba(0,255,135,0.2); }
+        .tag-blue { background: rgba(0,212,255,0.1); color: var(--neon-blue); border: 1px solid rgba(0,212,255,0.2); }
+        .tag-purple { background: rgba(180,77,255,0.1); color: var(--neon-purple); border: 1px solid rgba(180,77,255,0.2); }
+        .tag-orange { background: rgba(255,138,61,0.1); color: var(--neon-orange); border: 1px solid rgba(255,138,61,0.2); }
 
-        .section-title { font-size: 0.88rem; font-weight: 600; flex: 1; }
-        .section-chevron { color: var(--text-muted); transition: transform 0.2s; font-size: 0.8rem; }
-        .result-section.open .section-chevron { transform: rotate(90deg); }
-
-        .section-body {
-            display: none; padding: 16px 18px; background: var(--bg);
-            border-top: 1px solid var(--border); font-size: 0.88rem;
-            line-height: 1.8; white-space: pre-wrap;
+        .block-title {
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
         }
 
-        .result-section.open .section-body { display: block; }
+        /* ── Radar Chart ── */
+        .radar-zone {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+
+        .radar-svg-wrap {
+            flex-shrink: 0;
+            width: 280px;
+            height: 280px;
+        }
+
+        .radar-legend {
+            flex: 1;
+            min-width: 240px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .radar-item {
+            padding: 10px 14px;
+            background: var(--surface);
+            border-left: 3px solid var(--neon-blue);
+            border-radius: 0 10px 10px 0;
+            font-size: 0.82rem;
+            line-height: 1.5;
+            transition: all 0.2s;
+        }
+
+        .radar-item:hover { background: var(--surface-2); }
+
+        .radar-item .ri-dim {
+            font-family: 'Chakra Petch', sans-serif;
+            font-weight: 600;
+            font-size: 0.78rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 3px;
+        }
+
+        .radar-item .ri-status {
+            font-size: 0.6rem;
+            padding: 2px 8px;
+            border-radius: 99px;
+            font-family: 'Fira Code', monospace;
+            text-transform: uppercase;
+        }
+
+        .status-covered { background: rgba(0,255,135,0.12); color: var(--neon-green); }
+        .status-partial { background: rgba(255,225,86,0.12); color: var(--neon-yellow); }
+        .status-missing { background: rgba(255,45,120,0.12); color: var(--neon-pink); }
+
+        .radar-item .ri-text { color: var(--text-muted); font-size: 0.8rem; }
+
+        /* ── Feature Cards ── */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+        }
+
+        .feature-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--neon-purple), var(--neon-blue));
+        }
+
+        .feature-card:hover {
+            border-color: var(--neon-purple);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+
+        .fc-num {
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: rgba(180,77,255,0.2);
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+
+        .fc-name {
+            font-family: 'Chakra Petch', sans-serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+
+        .fc-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* ── Benchmark Cards ── */
+        .bench-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 12px;
+        }
+
+        .bench-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 18px;
+            transition: all 0.3s;
+        }
+
+        .bench-card:hover {
+            border-color: var(--neon-orange);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+
+        .bc-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .bc-name {
+            font-family: 'Chakra Petch', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .bc-type {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.6rem;
+            padding: 3px 10px;
+            border-radius: 99px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .type-it { background: rgba(0,212,255,0.12); color: var(--neon-blue); }
+        .type-nonit { background: rgba(255,138,61,0.12); color: var(--neon-orange); }
+
+        .bc-desc { font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 8px; }
+
+        .bc-row {
+            display: flex;
+            gap: 12px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .bc-row span { display: flex; align-items: flex-start; gap: 4px; flex: 1; line-height: 1.4; }
+        .bc-row .plus { color: var(--neon-green); flex-shrink: 0; }
+        .bc-row .minus { color: var(--neon-pink); flex-shrink: 0; }
+
+        /* ── Transcription (collapsible) ── */
+        .transcript-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 99px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .transcript-toggle:hover { border-color: var(--neon-green); color: var(--text); }
+
+        .transcript-box {
+            display: none;
+            margin-top: 12px;
+            padding: 18px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            font-size: 0.85rem;
+            line-height: 1.8;
+            color: var(--text-muted);
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        .transcript-box.visible { display: block; }
+
+        .transcript-box::-webkit-scrollbar { width: 5px; }
+        .transcript-box::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
         /* ── Export ── */
-        .export-bar { display: none; gap: 10px; margin-top: 16px; }
+        .export-bar { display: none; gap: 10px; margin-top: 24px; justify-content: center; }
         .export-bar.visible { display: flex; }
 
-        .export-bar button {
-            flex: 1; padding: 12px; border-radius: 10px;
-            border: 1px solid var(--border); background: var(--surface);
-            color: var(--text); font-family: inherit; font-size: 0.85rem;
-            font-weight: 500; cursor: pointer; transition: all 0.15s;
+        .export-btn {
+            padding: 12px 28px;
+            border-radius: 99px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
         }
 
-        .export-bar button:hover { border-color: var(--crack-green); color: var(--crack-green); }
+        .export-btn:hover { border-color: var(--neon-green); color: var(--neon-green); }
 
         /* ── Toast ── */
         .toast {
             position: fixed; bottom: 24px; left: 50%;
             transform: translateX(-50%) translateY(80px);
             background: var(--surface-2); border: 1px solid var(--border);
-            color: var(--text); padding: 10px 22px; border-radius: 99px;
-            font-size: 0.82rem; font-weight: 500; opacity: 0; transition: all 0.3s; z-index: 100;
+            color: var(--text); padding: 10px 24px; border-radius: 99px;
+            font-size: 0.82rem; font-weight: 500; opacity: 0;
+            transition: all 0.3s; z-index: 100;
         }
 
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-        @media (max-width: 600px) {
-            .container { padding: 20px 14px 60px; }
-            .dropzone { padding: 32px 16px; }
-            .score-value { font-size: 3rem; }
-            .key-row { flex-direction: column; }
+        @media (max-width: 700px) {
+            .setup { grid-template-columns: 1fr; }
+            .radar-zone { flex-direction: column; align-items: center; }
+            .score-big { font-size: 4rem; }
+            .wheel-container { width: 220px; height: 220px; }
+            #wheelCanvas { width: 220px; height: 220px; }
         }
     </style>
 </head>
 <body>
 
+<div class="app">
 <div class="container">
 
+    <!-- ═══ HEADER ═══ -->
     <div class="header">
         <div class="logo">
-            <span class="paren">(</span><span class="hack">Cr</span><span class="paren">)</span><span class="hack">Hack</span><span class="bang">!</span>
+            <span class="paren">(</span><span class="cr">Cr</span><span class="paren">)</span><span class="hack">Hack</span><span class="bang">!</span>
         </div>
-        <div class="subtitle">Analyzer · Une clé · Un fichier · Un rapport complet</div>
+        <div class="tagline"><span>$</span> ./analyzer.sh <span>--mode</span>=full-pipeline</div>
     </div>
 
-    <!-- ── API Key ── -->
-    <div class="key-section">
-        <div class="key-header">
-            <span class="key-dot" id="keyDot"></span>
-            <h3>Clé API OpenAI</h3>
+    <!-- ═══ SETUP ═══ -->
+    <div class="setup">
+        <div class="key-card">
+            <label><span class="dot" id="keyDot"></span> clé openai</label>
+            <input type="password" id="apiKey" placeholder="sk-proj-..." autocomplete="off">
         </div>
-        <div class="key-hint">Whisper (transcription) + GPT-4o (analyse). Ta clé reste dans ton navigateur, jamais stockée.</div>
-        <div class="key-row">
-            <input type="password" id="apiKeyInput" placeholder="sk-proj-..." autocomplete="off">
-        </div>
-    </div>
-
-    <!-- ── Dropzone ── -->
-    <div class="dropzone" id="dropzone">
-        <input type="file" id="fileInput" accept="video/*,audio/*,.mp4,.mp3,.wav,.webm,.ogg,.m4a">
-        <span class="dropzone-icon">🎬</span>
-        <div class="dropzone-text">Dépose ta vidéo / ton audio ici</div>
-        <div class="dropzone-hint">MP4, MP3, WAV, WebM… — 25 Mo max</div>
-    </div>
-
-    <div class="file-info" id="fileInfo">
-        <div class="fi-icon" id="fileIcon">🎬</div>
-        <div class="fi-details">
-            <div class="fi-name" id="fileName">—</div>
-            <div class="fi-meta" id="fileMeta">—</div>
-        </div>
-        <button class="fi-remove" onclick="removeFile()">✕</button>
-    </div>
-
-    <div class="size-warning" id="sizeWarning">⚠️ Fichier &gt; 25 Mo — limite de l'API Whisper.</div>
-
-    <!-- ── Trame EB ── -->
-    <div class="trame-toggle" id="trameToggle">
-        <button class="trame-btn" onclick="toggleTrame()">⚙ Voir / modifier la trame d'Expression de Besoin</button>
-        <div class="trame-content" id="trameContent">
-            <textarea id="trameText">Contexte - Origine de la demande
-Qu'est-ce qui a déclenché cette demande ? Qu'est-ce qui vous amène à formuler cette demande ?
-
-Finalité - Objectif N+1 par rapport à la demande
-Vous voulez … (formulez la demande) dans quel but ? Pour aboutir à quoi ? Faire quoi ? Obtenir quoi ?
-
-Résultats attendus
-A quoi saurez-vous ? A quoi constaterez-vous que l'objectif est atteint ?
-
-Acteurs directement concernés
-Quelles sont les personnes directement concernées par les résultats et/ou la mise en œuvre de l'action ?
-
-Réseau intervenants - Ou personnes à prendre en compte
-Qui pourrait freiner ou remettre en cause ? Quelles sont les personnes sur lesquelles s'appuyer pour réussir la mise en œuvre ?
-
-Enjeux spécifiques du demandeur et des acteurs
-En quoi la mise en œuvre de ce projet est-elle importante pour vous ? Qu'est-ce que les différents acteurs vont gagner ou perdre ?
-
-Contraintes/Ressources pour la mise en œuvre
-Délais ? Règles ? Contraintes à respecter ? Moyens à dispo ? Évolutions de l'environnement à venir ? Autres éléments ?
-
-Actions déjà tentées ou en cours
-A votre connaissance autres actions ? Qu'avez-vous déjà entrepris ? Contacts ?
-
-Régulations à envisager
-Qui devons-nous contacter ? Quand est-ce qu'on se revoit ?</textarea>
+        <div class="drop-card" id="dropzone">
+            <input type="file" id="fileInput" accept="video/*,audio/*,.mp4,.mp3,.wav,.webm,.ogg,.m4a">
+            <span class="drop-icon">🎬</span>
+            <div class="drop-title">Drop ton fichier ici</div>
+            <div class="drop-hint">Vidéo ou audio · 25 Mo max</div>
+            <div class="file-badge" id="fileBadge"></div>
         </div>
     </div>
 
-    <!-- ── Launch ── -->
-    <button class="launch-btn" id="launchBtn" onclick="launch()">⚡ Analyser</button>
+    <!-- ═══ LAUNCH ═══ -->
+    <div class="launch-zone">
+        <button class="launch-btn" id="launchBtn" onclick="launch()">⚡ LANCER L'ANALYSE</button>
+    </div>
 
-    <!-- ── Pipeline ── -->
-    <div class="pipeline" id="pipeline">
-        <div class="pipe-step" id="pipeWhisper">
-            <div class="pipe-num">1</div>
-            <span class="pipe-label">Transcription Whisper</span>
-            <div class="mini-spinner"></div>
-            <span class="pipe-status" id="pipeWhisperStatus">—</span>
+    <!-- ═══ WHEEL + PIPELINE ═══ -->
+    <div class="wheel-zone" id="wheelZone">
+        <div class="wheel-container">
+            <canvas id="wheelCanvas" width="560" height="560"></canvas>
+            <div class="wheel-pointer"></div>
+            <div class="wheel-center-label" id="wheelLabel">?</div>
         </div>
-        <div class="pipe-step" id="pipeAnalyse">
-            <div class="pipe-num">2</div>
-            <span class="pipe-label">Analyse EB + Fonctionnalités</span>
-            <div class="mini-spinner"></div>
-            <span class="pipe-status" id="pipeAnalyseStatus">—</span>
-        </div>
-        <div class="pipe-step" id="pipeBenchmark">
-            <div class="pipe-num">3</div>
-            <span class="pipe-label">Benchmark + Score (Cr)Hack!</span>
-            <div class="mini-spinner"></div>
-            <span class="pipe-status" id="pipeBenchmarkStatus">—</span>
+        <div class="pipe-steps">
+            <div class="pipe-chip" id="chip1">1 · Transcription</div>
+            <div class="pipe-chip" id="chip2">2 · Analyse EB</div>
+            <div class="pipe-chip" id="chip3">3 · Benchmark + Score</div>
         </div>
     </div>
 
-    <!-- ── Score Card ── -->
-    <div class="score-card" id="scoreCard">
-        <div class="score-label">Score (Cr)Hack!</div>
-        <div class="score-value" id="scoreValue">—<span class="score-max"> /10</span></div>
-        <div class="score-verdict" id="scoreVerdict"></div>
-        <div class="score-reasoning" id="scoreReasoning"></div>
+    <!-- ═══ SCORE REVEAL ═══ -->
+    <div class="score-reveal" id="scoreReveal">
+        <div class="score-big" id="scoreBig">—<span class="of-ten">/10</span></div>
+        <div class="score-verdict-text" id="scoreVerdict"></div>
+        <div class="score-reason-text" id="scoreReason"></div>
     </div>
 
-    <!-- ── Results ── -->
+    <!-- ═══ RESULTS ═══ -->
     <div class="results" id="results">
-        <div class="result-section" id="sec1">
-            <div class="result-section-header" onclick="toggleSection('sec1')">
-                <div class="section-num green">1</div>
-                <div class="section-title">Transcription</div>
-                <div class="section-chevron">▶</div>
+
+        <!-- Analyse EB + Radar -->
+        <div class="result-block" id="blockEB">
+            <div class="block-header">
+                <span class="block-tag tag-blue">02</span>
+                <span class="block-title">Analyse du besoin</span>
             </div>
-            <div class="section-body" id="sec1Body"></div>
+            <div class="radar-zone">
+                <div class="radar-svg-wrap">
+                    <svg id="radarSvg" viewBox="0 0 300 300" width="280" height="280"></svg>
+                </div>
+                <div class="radar-legend" id="radarLegend"></div>
+            </div>
         </div>
 
-        <div class="result-section open" id="sec2">
-            <div class="result-section-header" onclick="toggleSection('sec2')">
-                <div class="section-num blue">2</div>
-                <div class="section-title">Analyse du besoin (grille EB)</div>
-                <div class="section-chevron">▶</div>
+        <!-- Fonctionnalités -->
+        <div class="result-block" id="blockFeatures">
+            <div class="block-header">
+                <span class="block-tag tag-purple">03</span>
+                <span class="block-title">Macro-fonctionnalités</span>
             </div>
-            <div class="section-body" id="sec2Body"></div>
+            <div class="feature-grid" id="featureGrid"></div>
         </div>
 
-        <div class="result-section open" id="sec3">
-            <div class="result-section-header" onclick="toggleSection('sec3')">
-                <div class="section-num purple">3</div>
-                <div class="section-title">Macro-fonctionnalités de la solution</div>
-                <div class="section-chevron">▶</div>
+        <!-- Benchmark -->
+        <div class="result-block" id="blockBench">
+            <div class="block-header">
+                <span class="block-tag tag-orange">04</span>
+                <span class="block-title">Benchmark — solutions existantes</span>
             </div>
-            <div class="section-body" id="sec3Body"></div>
+            <div class="bench-grid" id="benchGrid"></div>
         </div>
 
-        <div class="result-section open" id="sec4">
-            <div class="result-section-header" onclick="toggleSection('sec4')">
-                <div class="section-num orange">4</div>
-                <div class="section-title">Benchmark des solutions existantes</div>
-                <div class="section-chevron">▶</div>
+        <!-- Transcription -->
+        <div class="result-block">
+            <div class="block-header">
+                <span class="block-tag tag-green">01</span>
+                <span class="block-title">Transcription</span>
             </div>
-            <div class="section-body" id="sec4Body"></div>
-        </div>
-
-        <div class="result-section open" id="sec5">
-            <div class="result-section-header" onclick="toggleSection('sec5')">
-                <div class="section-num red">5</div>
-                <div class="section-title">Score (Cr)Hack! — Justification</div>
-                <div class="section-chevron">▶</div>
-            </div>
-            <div class="section-body" id="sec5Body"></div>
+            <button class="transcript-toggle" onclick="document.getElementById('transcriptBox').classList.toggle('visible')">
+                📝 Voir la transcription brute
+            </button>
+            <div class="transcript-box" id="transcriptBox"></div>
         </div>
     </div>
 
+    <!-- ═══ EXPORT ═══ -->
     <div class="export-bar" id="exportBar">
-        <button onclick="copyAll()">📋 Copier tout</button>
-        <button onclick="downloadAll()">⬇ Télécharger .md</button>
+        <button class="export-btn" onclick="copyAll()">📋 Copier le rapport</button>
+        <button class="export-btn" onclick="downloadAll()">⬇ Télécharger .md</button>
     </div>
+
+</div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -579,68 +858,172 @@ Qui devons-nous contacter ? Quand est-ce qu'on se revoit ?</textarea>
 //  STATE
 // ══════════════════════════════════════════════
 let selectedFile = null;
-let fullReport = {};
-
-const OPENAI_API = 'https://api.openai.com/v1';
+let report = {};
+const OPENAI = 'https://api.openai.com/v1';
 const MODEL = 'gpt-4o';
+function key() { return document.getElementById('apiKey').value.trim(); }
 
-function getKey() { return document.getElementById('apiKeyInput').value.trim(); }
+// ── Trame EB (cachée mais utilisée) ──
+const TRAME_EB = `1. Contexte - Origine de la demande: Qu'est-ce qui a déclenché cette demande ?
+2. Finalité - Objectif N+1: Dans quel but ? Pour aboutir à quoi ?
+3. Résultats attendus: A quoi saurez-vous que l'objectif est atteint ?
+4. Acteurs directement concernés: Personnes concernées par les résultats/la mise en œuvre ?
+5. Réseau intervenants: Qui pourrait freiner ou aider ?
+6. Enjeux spécifiques: Qu'est-ce que les acteurs vont gagner ou perdre ?
+7. Contraintes/Ressources: Délais, règles, moyens, évolutions ?
+8. Actions déjà tentées: Qu'a déjà été entrepris ?
+9. Régulations à envisager: Qui contacter ? Prochaines étapes ?`;
 
-// ── Key handling ──
-document.getElementById('apiKeyInput').addEventListener('input', () => {
-    document.getElementById('keyDot').classList.toggle('active', getKey().length > 10);
+// ══════════════════════════════════════════════
+//  FILE + KEY HANDLING
+// ══════════════════════════════════════════════
+document.getElementById('apiKey').addEventListener('input', () => {
+    document.getElementById('keyDot').classList.toggle('on', key().length > 10);
     updateLaunch();
 });
 
-document.getElementById('apiKeyInput').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') document.getElementById('apiKeyInput').blur();
-});
+const dz = document.getElementById('dropzone');
+const fi = document.getElementById('fileInput');
 
-// ── File handling ──
-const dropzone = document.getElementById('dropzone');
-const fileInput = document.getElementById('fileInput');
-
-fileInput.addEventListener('change', (e) => { if (e.target.files[0]) handleFile(e.target.files[0]); });
-dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
-dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
-dropzone.addEventListener('drop', (e) => {
-    e.preventDefault(); dropzone.classList.remove('dragover');
-    if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
-});
+fi.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('dragover'); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
 
 function handleFile(file) {
     selectedFile = file;
-    const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
-    document.getElementById('fileName').textContent = file.name;
-    document.getElementById('fileMeta').textContent = `${sizeMB} Mo`;
-    document.getElementById('fileIcon').textContent = file.type.startsWith('audio/') ? '🎵' : '🎬';
-    document.getElementById('fileInfo').classList.add('visible');
-    document.getElementById('trameToggle').classList.add('visible');
-    document.getElementById('sizeWarning').classList.toggle('visible', file.size > 25 * 1024 * 1024);
+    dz.classList.add('has-file');
+    const badge = document.getElementById('fileBadge');
+    badge.textContent = `${file.name} · ${(file.size/1048576).toFixed(1)} Mo`;
+    badge.classList.add('visible');
+    document.querySelector('.drop-icon').textContent = file.type.startsWith('audio') ? '🎵' : '🎬';
+    document.querySelector('.drop-title').textContent = 'Fichier prêt !';
     hideResults();
     updateLaunch();
-}
-
-function removeFile() {
-    selectedFile = null; fileInput.value = '';
-    ['fileInfo', 'sizeWarning', 'trameToggle'].forEach(id => document.getElementById(id).classList.remove('visible'));
-    hideResults();
-    updateLaunch();
-}
-
-function hideResults() {
-    ['results', 'scoreCard', 'exportBar', 'pipeline'].forEach(id => document.getElementById(id).classList.remove('visible'));
 }
 
 function updateLaunch() {
-    const ready = getKey().length > 10 && selectedFile;
-    const btn = document.getElementById('launchBtn');
-    btn.classList.toggle('visible', !!ready);
-    btn.disabled = selectedFile && selectedFile.size > 25 * 1024 * 1024;
+    const ok = key().length > 10 && selectedFile && selectedFile.size <= 26214400;
+    document.getElementById('launchBtn').classList.toggle('visible', ok);
 }
 
-function toggleTrame() { document.getElementById('trameContent').classList.toggle('visible'); }
-function toggleSection(id) { document.getElementById(id).classList.toggle('open'); }
+function hideResults() {
+    ['scoreReveal','results','exportBar','wheelZone'].forEach(id => document.getElementById(id).classList.remove('visible'));
+}
+
+// ══════════════════════════════════════════════
+//  SPINNING WHEEL
+// ══════════════════════════════════════════════
+const canvas = document.getElementById('wheelCanvas');
+const ctx = canvas.getContext('2d');
+const SEGMENTS = 11; // 0 to 10
+const segAngle = (Math.PI * 2) / SEGMENTS;
+let wheelAngle = 0;
+let wheelSpinning = false;
+let wheelAnimId = null;
+
+const segColors = [
+    '#ff2244','#ff4433','#ff6633','#ff8833','#ffaa33',
+    '#ffcc33','#dddd33','#88cc44','#44bb55','#22cc77','#00ff87'
+];
+
+function drawWheel(angle) {
+    const w = canvas.width, h = canvas.height;
+    const cx = w/2, cy = h/2, r = w/2 - 20;
+    ctx.clearRect(0, 0, w, h);
+
+    for (let i = 0; i < SEGMENTS; i++) {
+        const start = angle + i * segAngle - Math.PI/2;
+        const end = start + segAngle;
+
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, r, start, end);
+        ctx.closePath();
+        ctx.fillStyle = segColors[i];
+        ctx.fill();
+
+        ctx.strokeStyle = 'rgba(10,10,15,0.6)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Label
+        const mid = start + segAngle / 2;
+        const labelR = r * 0.72;
+        const lx = cx + Math.cos(mid) * labelR;
+        const ly = cy + Math.sin(mid) * labelR;
+        ctx.save();
+        ctx.translate(lx, ly);
+        ctx.rotate(mid + Math.PI/2);
+        ctx.fillStyle = i < 4 ? '#fff' : '#111';
+        ctx.font = 'bold 28px Chakra Petch, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(i), 0, 0);
+        ctx.restore();
+    }
+
+    // Center circle
+    ctx.beginPath();
+    ctx.arc(cx, cy, 40, 0, Math.PI * 2);
+    ctx.fillStyle = '#12121c';
+    ctx.fill();
+    ctx.strokeStyle = '#2a2a45';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+}
+
+function spinWheel() {
+    wheelSpinning = true;
+    let speed = 0.15 + Math.random() * 0.1;
+
+    function animate() {
+        wheelAngle += speed;
+        drawWheel(wheelAngle);
+        if (wheelSpinning) {
+            wheelAnimId = requestAnimationFrame(animate);
+        }
+    }
+    animate();
+}
+
+function stopWheel(targetScore) {
+    wheelSpinning = false;
+    cancelAnimationFrame(wheelAnimId);
+
+    // Calculate target angle so the pointer (top) points to the score segment
+    const targetSegAngle = -(targetScore * segAngle) - segAngle / 2;
+    const currentNorm = wheelAngle % (Math.PI * 2);
+    const extraSpins = Math.PI * 2 * (3 + Math.floor(Math.random() * 2));
+    const finalAngle = wheelAngle + extraSpins + (targetSegAngle - currentNorm);
+
+    const startAngle = wheelAngle;
+    const duration = 2500;
+    const startTime = performance.now();
+
+    function easeOut(t) {
+        return 1 - Math.pow(1 - t, 4);
+    }
+
+    function decelerate(now) {
+        const elapsed = now - startTime;
+        const t = Math.min(elapsed / duration, 1);
+        const eased = easeOut(t);
+        wheelAngle = startAngle + (finalAngle - startAngle) * eased;
+        drawWheel(wheelAngle);
+
+        if (t < 1) {
+            requestAnimationFrame(decelerate);
+        } else {
+            document.getElementById('wheelLabel').textContent = targetScore + '/10';
+            document.getElementById('wheelLabel').style.color = segColors[targetScore];
+        }
+    }
+
+    requestAnimationFrame(decelerate);
+}
+
+drawWheel(0);
 
 // ══════════════════════════════════════════════
 //  MAIN PIPELINE
@@ -648,50 +1031,59 @@ function toggleSection(id) { document.getElementById(id).classList.toggle('open'
 async function launch() {
     const btn = document.getElementById('launchBtn');
     btn.disabled = true;
-    btn.textContent = 'Analyse en cours…';
+    btn.textContent = '⏳ Analyse en cours…';
 
-    document.getElementById('pipeline').classList.add('visible');
     hideResults();
-    resetPipe();
+    document.getElementById('wheelZone').classList.add('visible');
+    document.getElementById('wheelLabel').textContent = '?';
+    document.getElementById('wheelLabel').style.color = 'var(--text)';
+    resetChips();
+    spinWheel();
 
     try {
         // STEP 1 — Whisper
-        setPipe('pipeWhisper', 'active', 'envoi…');
+        setChip('chip1', 'active');
         const transcription = await callWhisper();
-        setPipe('pipeWhisper', 'done', `${transcription.length} car.`);
-        fullReport.transcription = transcription;
+        setChip('chip1', 'done');
+        report.transcription = transcription;
 
-        // STEP 2 — GPT-4o: Analyse EB + Fonctionnalités
-        setPipe('pipeAnalyse', 'active', 'GPT-4o réfléchit…');
+        // STEP 2 — Analysis (JSON)
+        setChip('chip2', 'active');
         const analysis = await callGPT_Analysis(transcription);
-        setPipe('pipeAnalyse', 'done', 'ok');
-        fullReport.analyseEB = analysis.analyseEB;
-        fullReport.fonctionnalites = analysis.fonctionnalites;
+        setChip('chip2', 'done');
+        report.eb = analysis.eb_dimensions;
+        report.features = analysis.features;
 
-        // STEP 3 — GPT-4o: Benchmark + Score
-        setPipe('pipeBenchmark', 'active', 'benchmark & scoring…');
+        // STEP 3 — Benchmark + Score (JSON)
+        setChip('chip3', 'active');
         const bench = await callGPT_Benchmark(transcription, analysis);
-        setPipe('pipeBenchmark', 'done', 'ok');
-        fullReport.benchmark = bench.benchmark;
-        fullReport.score = bench.score;
-        fullReport.scoreVerdict = bench.scoreVerdict;
-        fullReport.scoreReasoning = bench.scoreReasoning;
+        setChip('chip3', 'done');
+        report.solutions = bench.solutions;
+        report.score = bench.score;
+        report.verdict = bench.verdict;
+        report.justification = bench.justification;
 
-        renderResults();
+        // Stop wheel on score
+        stopWheel(Math.round(report.score));
 
-    } catch (error) {
-        console.error(error);
-        const active = document.querySelector('.pipe-step.active');
-        if (active) { active.classList.remove('active'); active.classList.add('error'); active.querySelector('.pipe-status').textContent = error.message; }
-        showToast('❌ ' + error.message);
+        // Wait for wheel to stop then reveal
+        setTimeout(() => renderResults(), 2800);
+
+    } catch (err) {
+        console.error(err);
+        wheelSpinning = false;
+        cancelAnimationFrame(wheelAnimId);
+        const active = document.querySelector('.pipe-chip.active');
+        if (active) { active.classList.remove('active'); active.classList.add('error'); active.textContent += ' ✕'; }
+        showToast('❌ ' + err.message);
     } finally {
         btn.disabled = false;
-        btn.textContent = '⚡ Analyser';
+        btn.textContent = '⚡ LANCER L\'ANALYSE';
     }
 }
 
 // ══════════════════════════════════════════════
-//  WHISPER
+//  API CALLS
 // ══════════════════════════════════════════════
 async function callWhisper() {
     const fd = new FormData();
@@ -700,253 +1092,273 @@ async function callWhisper() {
     fd.append('response_format', 'text');
     fd.append('language', 'fr');
 
-    const resp = await fetch(`${OPENAI_API}/audio/transcriptions`, {
+    const r = await fetch(`${OPENAI}/audio/transcriptions`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${getKey()}` },
+        headers: { 'Authorization': `Bearer ${key()}` },
         body: fd
     });
-
-    if (!resp.ok) {
-        const err = await resp.json().catch(() => ({}));
-        throw new Error('Whisper: ' + (err.error?.message || `Erreur ${resp.status}`));
-    }
-
-    return (await resp.text()).trim();
+    if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.error?.message || 'Whisper: erreur ' + r.status); }
+    return (await r.text()).trim();
 }
 
-// ══════════════════════════════════════════════
-//  GPT-4o CALLS
-// ══════════════════════════════════════════════
-async function callGPT(systemPrompt, userContent) {
-    const resp = await fetch(`${OPENAI_API}/chat/completions`, {
+async function callGPT(system, user) {
+    const r = await fetch(`${OPENAI}/chat/completions`, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${getKey()}`
-        },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key()}` },
         body: JSON.stringify({
             model: MODEL,
-            temperature: 0.4,
+            temperature: 0.3,
             max_tokens: 4096,
             messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: userContent }
+                { role: 'system', content: system },
+                { role: 'user', content: user }
             ]
         })
     });
-
-    if (!resp.ok) {
-        const err = await resp.json().catch(() => ({}));
-        throw new Error('GPT: ' + (err.error?.message || `Erreur ${resp.status}`));
-    }
-
-    const data = await resp.json();
-    return data.choices[0].message.content;
+    if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.error?.message || 'GPT: erreur ' + r.status); }
+    const d = await r.json();
+    return d.choices[0].message.content;
 }
 
 async function callGPT_Analysis(transcription) {
-    const trame = document.getElementById('trameText').value;
+    const system = `Tu es un expert innovation pour le podcast (Cr)Hack!. Analyse la transcription selon la grille EB et identifie les macro-fonctionnalités.
 
-    const system = `Tu es un expert en analyse de besoins et en innovation pour le podcast (Cr)Hack!.
-Tu reçois la transcription d'une vidéo (pitch, idée, besoin métier).
+GRILLE EB :
+${TRAME_EB}
 
-Tu dois produire une analyse structurée en DEUX parties clairement séparées.
-
-═══ PARTIE 1 : ANALYSE DU BESOIN (grille EB) ═══
-Pour chaque rubrique de la grille d'Expression de Besoin ci-dessous, analyse la transcription et extrais les éléments pertinents. Si une rubrique n'est pas couverte dans la vidéo, indique clairement "❓ Non abordé dans la vidéo — à creuser".
-
-Voici la grille EB :
-${trame}
-
-═══ PARTIE 2 : MACRO-FONCTIONNALITÉS ═══
-À partir de l'analyse du besoin, propose les grandes fonctionnalités que devrait avoir une solution répondant à ce besoin. Sois concret et pragmatique. Numérote chaque fonctionnalité et ajoute une courte description.
-
-IMPORTANT : Réponds en français. Sépare bien les deux parties avec les titres exacts "PARTIE 1" et "PARTIE 2". Sois synthétique mais complet.`;
-
-    const text = await callGPT(system, `Voici la transcription de la vidéo :\n\n${transcription}`);
-
-    const splitIdx = text.search(/PARTIE 2|═══.*MACRO|MACRO.FONCTIONNALIT/i);
-    if (splitIdx > 0) {
-        return {
-            analyseEB: text.substring(0, splitIdx).trim(),
-            fonctionnalites: text.substring(splitIdx).trim()
-        };
+RÉPONDS UNIQUEMENT en JSON valide (pas de markdown, pas de backticks), avec cette structure exacte :
+{
+  "eb_dimensions": [
+    {
+      "dimension": "Nom de la dimension",
+      "status": "covered" | "partial" | "missing",
+      "score": 0-10,
+      "summary": "Résumé en 1-2 phrases de ce qui ressort de la vidéo"
     }
-    return { analyseEB: text, fonctionnalites: '(Inclus dans l\'analyse ci-dessus)' };
+  ],
+  "features": [
+    {
+      "name": "Nom de la fonctionnalité",
+      "description": "Description courte et concrète"
+    }
+  ]
+}
+
+Il doit y avoir exactement 9 dimensions EB (une par rubrique de la grille).
+Propose 4 à 8 macro-fonctionnalités.
+TOUT en français.`;
+
+    const raw = await callGPT(system, 'Transcription :\n' + transcription);
+    return JSON.parse(raw.replace(/```json|```/g, '').trim());
 }
 
 async function callGPT_Benchmark(transcription, analysis) {
-    const system = `Tu es un expert en benchmark et en évaluation d'idées innovantes pour le podcast (Cr)Hack!.
+    const system = `Tu es un expert benchmark pour le podcast (Cr)Hack!.
 
-Tu reçois la transcription d'une vidéo et l'analyse du besoin + les macro-fonctionnalités identifiées.
+RÈGLES :
+- Ne cite QUE des solutions RÉELLES qui existent sur le marché
+- Inclus IT (logiciels, SaaS, apps) ET non-IT (process, méthodes, services humains, objets physiques)
+- N'INVENTE RIEN. Si tu n'es pas sûr qu'un produit existe, ne le mets pas.
 
-Tu dois produire DEUX choses :
+SCORING (Cr)Hack! :
+0-1 : Ça sert à rien · 2-3 : Faible intérêt, déjà bien couvert · 4-5 : Intéressant, différenciateur nécessaire · 6-7 : Bon potentiel · 8-9 : Très prometteur · 10 : Idée de génie, on y va !
 
-═══ PARTIE 1 : BENCHMARK DES SOLUTIONS EXISTANTES ═══
+RÉPONDS UNIQUEMENT en JSON valide (pas de markdown, pas de backticks) :
+{
+  "solutions": [
+    {
+      "name": "Nom du produit/service",
+      "type": "IT" | "Non-IT",
+      "description": "Ce que c'est en 1 phrase",
+      "strengths": "Points forts",
+      "weaknesses": "Limites"
+    }
+  ],
+  "score": 7.5,
+  "verdict": "Phrase percutante courte",
+  "justification": "2-3 phrases expliquant le score"
+}
 
-Identifie les solutions qui existent RÉELLEMENT sur le marché pour répondre à ce besoin.
+TOUT en français. 3 à 8 solutions max.`;
 
-RÈGLES STRICTES :
-- Ne cite QUE des solutions qui existent vraiment (entreprises, outils, services réels)
-- Inclus des solutions IT (logiciels, SaaS, apps) ET des solutions NON-IT (process, méthodes, services humains, objets physiques, organisations…) s'il en existe
-- Pour chaque solution : Nom | Type (IT / Non-IT) | Description courte | Forces | Limites | Prix si connu
-- Si tu n'es pas sûr qu'une solution existe, NE L'INVENTE PAS
-- Classe par pertinence par rapport au besoin
-
-═══ PARTIE 2 : SCORE (CR)HACK! ═══
-
-Attribue un score de 0 à 10 :
-0-1 : Ça ne sert à rien, le besoin n'existe pas ou est déjà parfaitement couvert
-2-3 : Faible intérêt, beaucoup de solutions existent déjà et couvrent bien le besoin
-4-5 : Intéressant mais des solutions partielles existent, il faudrait un vrai différenciateur
-6-7 : Bon potentiel, les solutions existantes ne couvrent pas bien le besoin
-8-9 : Très prometteur, peu ou pas de solutions satisfaisantes sur le marché
-10 : Idée de génie, on y va !!!
-
-Critères : clarté du besoin, existence (ou non) de solutions, potentiel d'impact, faisabilité.
-
-TERMINE OBLIGATOIREMENT par ces 3 lignes exactes :
-SCORE: X/10
-VERDICT: [une phrase courte percutante]
-JUSTIFICATION: [2-3 phrases expliquant le score]`;
-
-    const userMsg = `TRANSCRIPTION :\n${transcription}\n\nANALYSE DU BESOIN :\n${analysis.analyseEB}\n\nMACRO-FONCTIONNALITÉS :\n${analysis.fonctionnalites}`;
-
-    const text = await callGPT(system, userMsg);
-
-    const scoreMatch = text.match(/SCORE\s*:\s*(\d+(?:[.,]\d+)?)\s*\/\s*10/i);
-    const verdictMatch = text.match(/VERDICT\s*:\s*(.+)/i);
-    const justifMatch = text.match(/JUSTIFICATION\s*:\s*([\s\S]+?)$/i);
-
-    const benchmarkText = text.replace(/SCORE\s*:.*/gi, '').replace(/VERDICT\s*:.*/gi, '').replace(/JUSTIFICATION\s*:[\s\S]*/gi, '').trim();
-
-    return {
-        benchmark: benchmarkText,
-        score: scoreMatch ? parseFloat(scoreMatch[1].replace(',', '.')) : null,
-        scoreVerdict: verdictMatch ? verdictMatch[1].trim() : '',
-        scoreReasoning: justifMatch ? justifMatch[1].trim() : ''
-    };
+    const user = `Transcription :\n${transcription}\n\nAnalyse EB + Features :\n${JSON.stringify(analysis)}`;
+    const raw = await callGPT(system, user);
+    return JSON.parse(raw.replace(/```json|```/g, '').trim());
 }
 
 // ══════════════════════════════════════════════
-//  RENDER
+//  RENDER RESULTS
 // ══════════════════════════════════════════════
 function renderResults() {
-    document.getElementById('sec1Body').textContent = fullReport.transcription;
-    document.getElementById('sec2Body').textContent = fullReport.analyseEB;
-    document.getElementById('sec3Body').textContent = fullReport.fonctionnalites;
-    document.getElementById('sec4Body').textContent = fullReport.benchmark;
-    document.getElementById('sec5Body').textContent = `Score : ${fullReport.score}/10\n\n${fullReport.scoreVerdict}\n\n${fullReport.scoreReasoning}`;
+    // Score reveal
+    const score = report.score;
+    const scoreEl = document.getElementById('scoreBig');
+    let color;
+    if (score <= 3) color = 'var(--score-red)';
+    else if (score <= 5) color = 'var(--score-yellow)';
+    else if (score <= 7) color = 'var(--score-blue)';
+    else color = 'var(--score-green)';
 
-    // Score card
-    const score = fullReport.score;
-    if (score !== null) {
-        document.getElementById('scoreValue').innerHTML = `${score}<span class="score-max"> /10</span>`;
+    scoreEl.innerHTML = `${score}<span class="of-ten">/10</span>`;
+    scoreEl.style.color = color;
+    scoreEl.style.textShadow = `0 0 40px ${color}`;
 
-        let color;
-        if (score <= 3) color = 'var(--crack-red)';
-        else if (score <= 5) color = 'var(--crack-yellow)';
-        else if (score <= 7) color = 'var(--crack-blue)';
-        else color = 'var(--crack-green)';
+    document.getElementById('scoreReveal').style.setProperty('--score-glow', color.replace(')', ',0.15)').replace('var(', ''));
+    document.getElementById('scoreVerdict').textContent = report.verdict;
+    document.getElementById('scoreVerdict').style.color = color;
+    document.getElementById('scoreReason').textContent = report.justification;
+    document.getElementById('scoreReveal').classList.add('visible');
 
-        document.getElementById('scoreValue').style.color = color;
-        document.getElementById('scoreVerdict').textContent = fullReport.scoreVerdict;
-        document.getElementById('scoreVerdict').style.color = color;
-        document.getElementById('scoreReasoning').textContent = fullReport.scoreReasoning;
-    }
+    // Radar chart
+    renderRadar(report.eb);
 
-    document.getElementById('scoreCard').classList.add('visible');
+    // Features
+    renderFeatures(report.features);
+
+    // Benchmark
+    renderBenchmark(report.solutions);
+
+    // Transcription
+    document.getElementById('transcriptBox').textContent = report.transcription;
+
     document.getElementById('results').classList.add('visible');
     document.getElementById('exportBar').classList.add('visible');
 }
 
-// ══════════════════════════════════════════════
-//  PIPELINE UI
-// ══════════════════════════════════════════════
-function setPipe(id, state, status) {
-    const el = document.getElementById(id);
-    el.className = 'pipe-step ' + state;
-    document.getElementById(id + 'Status').textContent = status;
-    if (state === 'done') el.querySelector('.pipe-num').textContent = '✓';
-    if (state === 'error') el.querySelector('.pipe-num').textContent = '✕';
+// ── Radar Chart (SVG) ──
+function renderRadar(dims) {
+    const svg = document.getElementById('radarSvg');
+    const cx = 150, cy = 150, maxR = 120;
+    const n = dims.length;
+    const angleStep = (Math.PI * 2) / n;
+
+    let html = '';
+
+    // Grid circles
+    for (let ring = 1; ring <= 5; ring++) {
+        const r = maxR * ring / 5;
+        html += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(107,113,148,0.15)" stroke-width="1"/>`;
+    }
+
+    // Axis lines + labels
+    dims.forEach((d, i) => {
+        const angle = i * angleStep - Math.PI / 2;
+        const x = cx + Math.cos(angle) * maxR;
+        const y = cy + Math.sin(angle) * maxR;
+        html += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="rgba(107,113,148,0.12)" stroke-width="1"/>`;
+
+        const lx = cx + Math.cos(angle) * (maxR + 16);
+        const ly = cy + Math.sin(angle) * (maxR + 16);
+        const short = d.dimension.split(' ')[0].substring(0, 8);
+        html += `<text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" fill="#6b7194" font-size="9" font-family="Fira Code, monospace">${short}</text>`;
+    });
+
+    // Data polygon
+    let points = dims.map((d, i) => {
+        const angle = i * angleStep - Math.PI / 2;
+        const r = maxR * (d.score / 10);
+        return `${cx + Math.cos(angle) * r},${cy + Math.sin(angle) * r}`;
+    }).join(' ');
+
+    html += `<polygon points="${points}" fill="rgba(0,212,255,0.15)" stroke="var(--neon-blue)" stroke-width="2"/>`;
+
+    // Data dots
+    dims.forEach((d, i) => {
+        const angle = i * angleStep - Math.PI / 2;
+        const r = maxR * (d.score / 10);
+        const x = cx + Math.cos(angle) * r;
+        const y = cy + Math.sin(angle) * r;
+        html += `<circle cx="${x}" cy="${y}" r="4" fill="var(--neon-blue)" stroke="var(--bg)" stroke-width="2"/>`;
+    });
+
+    svg.innerHTML = html;
+
+    // Legend
+    const legend = document.getElementById('radarLegend');
+    legend.innerHTML = dims.map(d => {
+        const statusClass = d.status === 'covered' ? 'status-covered' : d.status === 'partial' ? 'status-partial' : 'status-missing';
+        const statusLabel = d.status === 'covered' ? '✓ Couvert' : d.status === 'partial' ? '◐ Partiel' : '✕ Manquant';
+        return `<div class="radar-item">
+            <div class="ri-dim">${d.dimension} <span class="ri-status ${statusClass}">${statusLabel}</span></div>
+            <div class="ri-text">${d.summary}</div>
+        </div>`;
+    }).join('');
 }
 
-function resetPipe() {
-    ['pipeWhisper', 'pipeAnalyse', 'pipeBenchmark'].forEach((id, i) => {
-        document.getElementById(id).className = 'pipe-step';
-        document.getElementById(id).querySelector('.pipe-num').textContent = String(i + 1);
-        document.getElementById(id + 'Status').textContent = '—';
+// ── Feature Cards ──
+function renderFeatures(features) {
+    document.getElementById('featureGrid').innerHTML = features.map((f, i) => `
+        <div class="feature-card">
+            <div class="fc-num">${String(i + 1).padStart(2, '0')}</div>
+            <div class="fc-name">${f.name}</div>
+            <div class="fc-desc">${f.description}</div>
+        </div>
+    `).join('');
+}
+
+// ── Benchmark Cards ──
+function renderBenchmark(solutions) {
+    document.getElementById('benchGrid').innerHTML = solutions.map(s => `
+        <div class="bench-card">
+            <div class="bc-top">
+                <span class="bc-name">${s.name}</span>
+                <span class="bc-type ${s.type === 'IT' ? 'type-it' : 'type-nonit'}">${s.type}</span>
+            </div>
+            <div class="bc-desc">${s.description}</div>
+            <div class="bc-row">
+                <span><span class="plus">+</span> ${s.strengths}</span>
+                <span><span class="minus">−</span> ${s.weaknesses}</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+// ══════════════════════════════════════════════
+//  UI HELPERS
+// ══════════════════════════════════════════════
+function setChip(id, state) {
+    const el = document.getElementById(id);
+    el.className = 'pipe-chip ' + state;
+    if (state === 'done') el.textContent = el.textContent.replace(/ ·.*/, '') + ' ✓';
+}
+
+function resetChips() {
+    ['chip1','chip2','chip3'].forEach((id, i) => {
+        const el = document.getElementById(id);
+        el.className = 'pipe-chip';
+        el.textContent = ['1 · Transcription','2 · Analyse EB','3 · Benchmark + Score'][i];
     });
 }
 
-// ══════════════════════════════════════════════
-//  EXPORT
-// ══════════════════════════════════════════════
-function buildMarkdown() {
-    return `# (Cr)Hack! Analyzer — Rapport
-
-## Score : ${fullReport.score}/10
-**${fullReport.scoreVerdict}**
-
-${fullReport.scoreReasoning}
-
----
-
-## 1. Transcription
-
-${fullReport.transcription}
-
----
-
-## 2. Analyse du besoin (grille EB)
-
-${fullReport.analyseEB}
-
----
-
-## 3. Macro-fonctionnalités de la solution
-
-${fullReport.fonctionnalites}
-
----
-
-## 4. Benchmark des solutions existantes
-
-${fullReport.benchmark}
-
----
-
-## 5. Score (Cr)Hack! — Justification
-
-Score : ${fullReport.score}/10
-
-${fullReport.scoreVerdict}
-
-${fullReport.scoreReasoning}
-`;
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-function copyAll() {
-    navigator.clipboard.writeText(buildMarkdown()).then(() => showToast('✓ Rapport copié'));
+// ── Export ──
+function buildMD() {
+    let md = `# (Cr)Hack! Analyzer — Rapport\n\n## Score : ${report.score}/10\n**${report.verdict}**\n\n${report.justification}\n\n---\n\n`;
+    md += `## Analyse du besoin\n\n`;
+    report.eb.forEach(d => { md += `### ${d.dimension} [${d.status.toUpperCase()}] — ${d.score}/10\n${d.summary}\n\n`; });
+    md += `---\n\n## Macro-fonctionnalités\n\n`;
+    report.features.forEach((f, i) => { md += `${i+1}. **${f.name}** — ${f.description}\n`; });
+    md += `\n---\n\n## Benchmark\n\n`;
+    report.solutions.forEach(s => { md += `### ${s.name} (${s.type})\n${s.description}\n- ✅ ${s.strengths}\n- ⚠️ ${s.weaknesses}\n\n`; });
+    md += `---\n\n## Transcription\n\n${report.transcription}\n`;
+    return md;
 }
+
+function copyAll() { navigator.clipboard.writeText(buildMD()).then(() => showToast('✓ Rapport copié')); }
 
 function downloadAll() {
-    const blob = new Blob([buildMarkdown()], { type: 'text/markdown;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
+    const b = new Blob([buildMD()], {type:'text/markdown;charset=utf-8'});
     const a = document.createElement('a');
-    a.href = url;
-    const base = selectedFile ? selectedFile.name.replace(/\.[^/.]+$/, '') : 'crhack';
-    a.download = `${base}_crhack_analyse.md`;
+    a.href = URL.createObjectURL(b);
+    a.download = (selectedFile?.name.replace(/\.[^/.]+$/,'') || 'crhack') + '_analyse.md';
     a.click();
-    URL.revokeObjectURL(url);
-    showToast('✓ Rapport téléchargé');
-}
-
-function showToast(msg) {
-    const toast = document.getElementById('toast');
-    toast.textContent = msg;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 2500);
+    showToast('✓ Téléchargé');
 }
 </script>
 
