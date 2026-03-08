@@ -484,6 +484,12 @@
     fill: var(--accent);
     transition: all 1s ease;
     filter: drop-shadow(0 0 4px var(--accent));
+    cursor: pointer;
+  }
+
+  .radar-point:hover {
+    r: 8;
+    filter: drop-shadow(0 0 10px var(--accent));
   }
 
   .radar-label-text {
@@ -491,7 +497,11 @@
     font-size: 9.5px;
     fill: var(--text-dim);
     text-anchor: middle;
+    cursor: pointer;
+    transition: fill 0.2s;
   }
+
+  .radar-label-text:hover { fill: var(--text); }
 
   .radar-score-text {
     font-family: 'Outfit', sans-serif;
@@ -499,6 +509,7 @@
     font-weight: 700;
     fill: var(--accent);
     text-anchor: middle;
+    cursor: pointer;
   }
 
   /* ─── Axes detail cards ─── */
@@ -740,6 +751,175 @@
     animation: pulse-dot 1.5s infinite;
   }
 
+  /* ─── Detail popup ─── */
+  .detail-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(6px);
+    z-index: 1001;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .detail-overlay.open { display: flex; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .detail-popup {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 0;
+    width: 460px;
+    max-width: 92vw;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+
+  .detail-popup::-webkit-scrollbar { width: 4px; }
+  .detail-popup::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px 14px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    z-index: 2;
+  }
+
+  .detail-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .detail-icon { font-size: 24px; }
+
+  .detail-title {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+  }
+
+  .detail-score-badge {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 900;
+    font-size: 22px;
+    min-width: 40px;
+    text-align: center;
+  }
+
+  .detail-close {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    margin-left: 12px;
+  }
+
+  .detail-close:hover {
+    border-color: var(--danger);
+    color: var(--danger);
+  }
+
+  .detail-body {
+    padding: 18px 24px 24px;
+  }
+
+  .detail-section-label {
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    margin-top: 16px;
+  }
+
+  .detail-section-label:first-child { margin-top: 0; }
+
+  .detail-text {
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  .detail-bar-track {
+    width: 100%;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    margin: 12px 0 4px;
+    overflow: hidden;
+  }
+
+  .detail-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.6s ease;
+  }
+
+  .benchmark-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .benchmark-item {
+    padding: 10px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    transition: border-color 0.2s;
+  }
+
+  .benchmark-item:hover { border-color: var(--cyan); }
+
+  .benchmark-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--cyan);
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 3px;
+  }
+
+  .benchmark-name:hover { text-decoration: underline; }
+
+  .benchmark-desc {
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  .benchmark-empty {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-style: italic;
+    padding: 8px 0;
+  }
+
+  /* ─── Clickable axes ─── */
+  .axis-card { cursor: pointer; }
+  .axis-card:hover { transform: translateX(4px); }
+
   /* ─── Responsive ─── */
   @media (max-width: 900px) {
     .main { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
@@ -899,10 +1079,39 @@
   </div>
 </div>
 
+<!-- ─── DETAIL POPUP ─── -->
+<div class="detail-overlay" id="detailOverlay" onclick="if(event.target===this)closeDetail()">
+  <div class="detail-popup">
+    <div class="detail-header">
+      <div class="detail-header-left">
+        <div class="detail-icon" id="detailIcon"></div>
+        <div class="detail-title" id="detailTitle"></div>
+      </div>
+      <div class="detail-score-badge" id="detailScore"></div>
+      <button class="detail-close" onclick="closeDetail()">✕</button>
+    </div>
+    <div class="detail-body">
+      <div class="detail-bar-track"><div class="detail-bar-fill" id="detailBar"></div></div>
+
+      <div class="detail-section-label">Résumé</div>
+      <div class="detail-text" id="detailJustification"></div>
+
+      <div class="detail-section-label">Analyse détaillée</div>
+      <div class="detail-text" id="detailFull"></div>
+
+      <div id="detailBenchmarkSection" style="display:none">
+        <div class="detail-section-label">Benchmark — Solutions existantes</div>
+        <div class="benchmark-list" id="detailBenchmarkList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 // ─── STATE ───
 let engine = 'openai';
 let selectedFile = null;
+let lastAnalysis = null;
 let config = {
   openaiKey: '',
   anthropicKey: '',
@@ -912,11 +1121,11 @@ let config = {
 };
 
 const AXES = [
-  { key: 'potentiel_ia', name: 'Potentiel IA', icon: '🤖', desc: 'Faisabilité technique IA' },
-  { key: 'effet_wow', name: 'Effet Wow', icon: '🔥', desc: 'Impact visuel en live' },
-  { key: 'besoin_reel', name: 'Besoin Réel', icon: '🎯', desc: 'Vrai pain point, pas du gadget' },
-  { key: 'originalite', name: 'Originalité', icon: '💎', desc: 'Pas déjà 10 solutions marché' },
-  { key: 'sobriete_sens', name: 'Sobriété & Sens', icon: '🌱', desc: 'Utile sans bullshit planétaire' }
+  { key: 'intensite_probleme', name: 'Intensité du problème', icon: '🎯', desc: 'Pain point fort, fréquent et partagé' },
+  { key: 'potentiel_valeur', name: 'Potentiel de valeur', icon: '💡', desc: 'Gain tangible et mesurable' },
+  { key: 'faisabilite_format', name: 'Faisabilité format', icon: '🧩', desc: 'Proto/démo faisable en 5-10 min' },
+  { key: 'fraicheur', name: 'Fraîcheur', icon: '💎', desc: 'Angle neuf, pas vu 50 fois' },
+  { key: 'sobriete_sens', name: 'Sens & Sobriété', icon: '🌱', desc: 'Vrai service, proportionné, pas de bullshit' }
 ];
 
 // ─── LOAD CONFIG ───
@@ -1069,7 +1278,7 @@ async function transcribeClaude(file) {
 function buildAnalysisPrompt(transcript) {
   const axesDesc = AXES.map((a, i) => `${i+1}. ${a.name} (${a.desc})`).join('\n');
 
-  return `Tu es l'analyste du podcast (Cr)Hack!, un podcast vidéo où on hack des problèmes du quotidien ou tech avec l'IA en 5-10 min.
+  return `Tu es l'analyste du podcast (Cr)Hack!, un podcast vidéo où on hack des problèmes du quotidien ou tech en 5-10 min.
 
 Voici la transcription d'un pitch de problème envoyé par Benjamin :
 
@@ -1077,31 +1286,50 @@ Voici la transcription d'un pitch de problème envoyé par Benjamin :
 ${transcript}
 ---
 
-Analyse ce pitch et évalue-le sur ces 5 axes (note de 1 à 10 chacun) :
+L'objectif n'est PAS de savoir si l'IA est la bonne solution. L'objectif est de savoir si cette problématique mérite qu'on aille plus loin et qu'on en fasse un épisode.
+
+Évalue ce pitch sur ces 5 axes d'innovation (note de 1 à 10 chacun) :
 ${axesDesc}
 
-IMPORTANT : Pour "Sobriété & Sens", sois exigeant. Un truc qui est un énième gadget sans réel impact, un bullshit inutile qui gaspille des ressources, ou qui n'a aucune dimension responsable = note basse.
+CONSIGNES DE NOTATION :
+- "Intensité du problème" : un irritant quotidien vécu par beaucoup = note haute. Un "ça serait cool si..." = note basse.
+- "Potentiel de valeur" : du temps gagné, de l'argent économisé, des erreurs évitées, un confort net = note haute. Valeur floue ou marginale = note basse.
+- "Faisabilité format" : on peut montrer un résultat concret en 5-10 min = note haute. Trop complexe ou trop trivial = note basse.
+- "Fraîcheur" : angle neuf, hack inattendu, problème dont personne ne parle = note haute. Vu et revu partout = note basse.
+- "Sens & Sobriété" : sois exigeant. Vrai service rendu, proportionné au problème, dont on peut être fiers = note haute. Gadget inutile, bullshit qui gaspille des ressources = note basse.
 
 Réponds UNIQUEMENT avec un JSON valide (pas de markdown, pas de backticks), format :
 {
   "titre": "Titre court du problème pitché",
   "resume": "1 phrase résumant le problème",
   "scores": {
-    "potentiel_ia": <1-10>,
-    "effet_wow": <1-10>,
-    "besoin_reel": <1-10>,
-    "originalite": <1-10>,
+    "intensite_probleme": <1-10>,
+    "potentiel_valeur": <1-10>,
+    "faisabilite_format": <1-10>,
+    "fraicheur": <1-10>,
     "sobriete_sens": <1-10>
   },
   "justifications": {
-    "potentiel_ia": "1 phrase",
-    "effet_wow": "1 phrase",
-    "besoin_reel": "1 phrase",
-    "originalite": "1 phrase",
-    "sobriete_sens": "1 phrase"
+    "intensite_probleme": "1 phrase courte",
+    "potentiel_valeur": "1 phrase courte",
+    "faisabilite_format": "1 phrase courte",
+    "fraicheur": "1 phrase courte",
+    "sobriete_sens": "1 phrase courte"
   },
-  "verdict_note": "1 phrase de conclusion"
-}`;
+  "details": {
+    "intensite_probleme": "2-4 phrases : qui est touché, à quelle fréquence, quelle intensité de douleur",
+    "potentiel_valeur": "2-4 phrases : quel gain concret, pour qui, mesurable comment",
+    "faisabilite_format": "2-4 phrases : est-ce faisable en 5-10 min, quel hack possible, quel résultat montrable",
+    "fraicheur": "2-4 phrases : paysage existant, ce qui a déjà été fait, en quoi cet angle est neuf (ou pas)",
+    "sobriete_sens": "2-4 phrases : utilité réelle, proportionnalité, impact environnemental/sociétal"
+  },
+  "benchmark": [
+    {"nom": "Nom de la solution existante", "url": "https://...", "desc": "1 phrase sur ce que ça fait et en quoi c'est similaire ou différent"}
+  ],
+  "verdict_note": "1 phrase de conclusion sur le potentiel épisode"
+}
+
+Pour "benchmark" : liste 0 à 5 solutions existantes sur le marché qui répondent au même besoin ou un besoin proche. Si tu n'en trouves aucune, renvoie un tableau vide [].`;
 }
 
 async function analyzeWithOpenAI(transcript) {
@@ -1116,6 +1344,7 @@ async function analyzeWithOpenAI(transcript) {
     body: JSON.stringify({
       model: 'gpt-4o',
       temperature: 0.4,
+      max_tokens: 2500,
       messages: [
         { role: 'system', content: 'Tu réponds UNIQUEMENT en JSON valide, sans backticks ni texte autour.' },
         { role: 'user', content: prompt }
@@ -1143,7 +1372,7 @@ async function analyzeWithClaude(transcript) {
     },
     body: JSON.stringify({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 1500,
+      max_tokens: 2500,
       messages: [{ role: 'user', content: prompt }]
     })
   });
@@ -1163,6 +1392,7 @@ function getScoreColor(score, seuil) {
 }
 
 function renderResults(analysis) {
+  lastAnalysis = analysis;
   const scores = analysis.scores;
   const values = Object.values(scores);
   const avg = values.reduce((a, b) => a + b, 0) / values.length;
@@ -1269,9 +1499,20 @@ function renderRadar(scores) {
     // Point
     const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     circle.setAttribute('cx', x); circle.setAttribute('cy', y);
-    circle.setAttribute('r', 4);
+    circle.setAttribute('r', 6);
     circle.setAttribute('class', 'radar-point');
+    circle.style.cursor = 'pointer';
+    circle.addEventListener('click', () => openDetail(axis.key));
     pointEls.push(circle);
+
+    // Clickable invisible hit area (bigger target)
+    const hitArea = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    hitArea.setAttribute('cx', x); hitArea.setAttribute('cy', y);
+    hitArea.setAttribute('r', 16);
+    hitArea.setAttribute('fill', 'transparent');
+    hitArea.style.cursor = 'pointer';
+    hitArea.addEventListener('click', () => openDetail(axis.key));
+    pointEls.push(hitArea);
 
     // Label
     const labelR = maxR + 22;
@@ -1281,6 +1522,8 @@ function renderRadar(scores) {
     text.setAttribute('x', lx); text.setAttribute('y', ly);
     text.setAttribute('class', 'radar-label-text');
     text.setAttribute('dominant-baseline', 'middle');
+    text.style.cursor = 'pointer';
+    text.addEventListener('click', () => openDetail(axis.key));
     text.textContent = axis.icon + ' ' + axis.name;
     svg.appendChild(text);
 
@@ -1292,6 +1535,8 @@ function renderRadar(scores) {
     scoreText.setAttribute('x', sx); scoreText.setAttribute('y', sy);
     scoreText.setAttribute('class', 'radar-score-text');
     scoreText.setAttribute('dominant-baseline', 'middle');
+    scoreText.style.cursor = 'pointer';
+    scoreText.addEventListener('click', () => openDetail(axis.key));
     scoreText.textContent = scores[axis.key] || '0';
     svg.appendChild(scoreText);
   });
@@ -1312,7 +1557,8 @@ function renderAxesDetail(scores, justifications) {
     const color = getScoreColor(score, config.seuil);
     const card = document.createElement('div');
     card.className = 'axis-card';
-    card.title = justifications[axis.key] || '';
+    card.title = 'Cliquer pour le détail';
+    card.onclick = () => openDetail(axis.key);
     card.innerHTML = `
       <div class="axis-icon">${axis.icon}</div>
       <div class="axis-info">
@@ -1401,6 +1647,69 @@ async function launchAnalysis() {
 
   document.getElementById('launchBtn').disabled = false;
 }
+
+// ─── DETAIL POPUP ───
+function openDetail(axisKey) {
+  if (!lastAnalysis) return;
+  const axis = AXES.find(a => a.key === axisKey);
+  if (!axis) return;
+
+  const score = lastAnalysis.scores[axisKey] || 0;
+  const color = getScoreColor(score, config.seuil);
+
+  document.getElementById('detailIcon').textContent = axis.icon;
+  document.getElementById('detailTitle').textContent = axis.name;
+  document.getElementById('detailScore').textContent = score + '/10';
+  document.getElementById('detailScore').style.color = color;
+
+  const bar = document.getElementById('detailBar');
+  bar.style.background = color;
+  bar.style.width = '0%';
+  setTimeout(() => { bar.style.width = (score * 10) + '%'; }, 50);
+
+  document.getElementById('detailJustification').textContent =
+    (lastAnalysis.justifications && lastAnalysis.justifications[axisKey]) || '—';
+
+  document.getElementById('detailFull').textContent =
+    (lastAnalysis.details && lastAnalysis.details[axisKey]) || 'Pas de détail disponible.';
+
+  // Benchmark section — show for originalite, or if benchmark data exists
+  const benchSection = document.getElementById('detailBenchmarkSection');
+  const benchList = document.getElementById('detailBenchmarkList');
+  benchList.innerHTML = '';
+
+  const benchmarks = lastAnalysis.benchmark || [];
+  if (axisKey === 'fraicheur' || benchmarks.length > 0) {
+    benchSection.style.display = 'block';
+    if (benchmarks.length === 0) {
+      benchList.innerHTML = '<div class="benchmark-empty">Aucune solution concurrente identifiée — terrain vierge.</div>';
+    } else {
+      benchmarks.forEach(b => {
+        const item = document.createElement('div');
+        item.className = 'benchmark-item';
+        const link = b.url ? `<a class="benchmark-name" href="${b.url}" target="_blank" rel="noopener">${b.nom || 'Lien'} ↗</a>` : `<div class="benchmark-name">${b.nom || '?'}</div>`;
+        item.innerHTML = link + `<div class="benchmark-desc">${b.desc || ''}</div>`;
+        benchList.appendChild(item);
+      });
+    }
+  } else {
+    benchSection.style.display = 'none';
+  }
+
+  document.getElementById('detailOverlay').classList.add('open');
+}
+
+function closeDetail() {
+  document.getElementById('detailOverlay').classList.remove('open');
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeDetail();
+    const settings = document.getElementById('settingsOverlay');
+    if (settings.classList.contains('open')) toggleSettings();
+  }
+});
 
 // ─── INIT ───
 loadConfigUI();
