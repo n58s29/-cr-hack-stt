@@ -853,34 +853,36 @@
     </div>
 
     <div class="field">
-      <label>Clé API OpenAI (Whisper)</label>
+      <label>Pipeline</label>
+      <div class="engine-toggle" style="width:100%">
+        <button class="engine-btn active" data-engine="openai" onclick="setEngine('openai')" style="flex:1">🟢 Tout OpenAI</button>
+        <button class="engine-btn" data-engine="claude" onclick="setEngine('claude')" style="flex:1">🟣 Tout Claude</button>
+      </div>
+      <div class="hint" id="hintEngine">Whisper (transcription) + GPT-4o (analyse)</div>
+    </div>
+
+    <div class="field" id="fieldOpenaiKey">
+      <label>Clé API OpenAI</label>
       <input type="password" id="cfgOpenaiKey" placeholder="sk-...">
     </div>
 
-    <div class="field">
-      <label>Clé API Anthropic (Claude)</label>
+    <div class="field" id="fieldAnthropicKey" style="display:none">
+      <label>Clé API Anthropic</label>
       <input type="password" id="cfgAnthropicKey" placeholder="sk-ant-...">
     </div>
 
-    <div class="field">
-      <label>URL Whisper (optionnel)</label>
-      <input type="text" id="cfgWhisperUrl" placeholder="https://api.openai.com/v1/audio/transcriptions">
-      <div class="hint">Laisser vide = URL par défaut OpenAI</div>
+    <div class="field" id="fieldOpenaiUrl" style="display:none">
+      <label>URL OpenAI (optionnel)</label>
+      <input type="text" id="cfgOpenaiUrl" placeholder="https://api.openai.com/v1">
     </div>
 
-    <div class="field">
+    <div class="field" id="fieldClaudeUrl" style="display:none">
       <label>URL Claude (optionnel)</label>
       <input type="text" id="cfgClaudeUrl" placeholder="https://api.anthropic.com/v1/messages">
-      <div class="hint">Laisser vide = URL par défaut Anthropic</div>
     </div>
 
-    <div class="field">
-      <label>Moteur de transcription</label>
-      <div class="engine-toggle" style="width:100%">
-        <button class="engine-btn active" data-engine="whisper" onclick="setEngine('whisper')" style="flex:1">Whisper (OpenAI)</button>
-        <button class="engine-btn" data-engine="claude" onclick="setEngine('claude')" style="flex:1">Claude Vision</button>
-      </div>
-      <div class="hint">Whisper = audio uniquement · Claude Vision = analyse directe vidéo</div>
+    <div style="text-align:right;margin-bottom:12px">
+      <button style="background:transparent;border:none;color:var(--text-dim);font-family:'JetBrains Mono',monospace;font-size:10px;cursor:pointer;text-decoration:underline" onclick="var s=document.getElementById('fieldOpenaiUrl').style.display==='none'?'block':'none';document.getElementById('fieldOpenaiUrl').style.display=s;document.getElementById('fieldClaudeUrl').style.display=s;">URLs avancées ▾</button>
     </div>
 
     <div class="field">
@@ -899,12 +901,12 @@
 
 <script>
 // ─── STATE ───
-let engine = 'whisper';
+let engine = 'openai';
 let selectedFile = null;
 let config = {
   openaiKey: '',
   anthropicKey: '',
-  whisperUrl: 'https://api.openai.com/v1/audio/transcriptions',
+  openaiUrl: 'https://api.openai.com/v1',
   claudeUrl: 'https://api.anthropic.com/v1/messages',
   seuil: 6
 };
@@ -921,23 +923,26 @@ const AXES = [
 try {
   const saved = JSON.parse(sessionStorage.getItem('crhack_cfg') || '{}');
   Object.assign(config, saved);
+  if (saved.engine) engine = saved.engine;
 } catch(e) {}
 
 function loadConfigUI() {
   document.getElementById('cfgOpenaiKey').value = config.openaiKey || '';
   document.getElementById('cfgAnthropicKey').value = config.anthropicKey || '';
-  document.getElementById('cfgWhisperUrl').value = config.whisperUrl || '';
+  document.getElementById('cfgOpenaiUrl').value = config.openaiUrl || '';
   document.getElementById('cfgClaudeUrl').value = config.claudeUrl || '';
   document.getElementById('cfgSeuil').value = config.seuil;
   document.getElementById('seuilVal').textContent = config.seuil;
+  setEngine(engine);
 }
 
 function saveSettings() {
   config.openaiKey = document.getElementById('cfgOpenaiKey').value.trim();
   config.anthropicKey = document.getElementById('cfgAnthropicKey').value.trim();
-  config.whisperUrl = document.getElementById('cfgWhisperUrl').value.trim() || 'https://api.openai.com/v1/audio/transcriptions';
+  config.openaiUrl = document.getElementById('cfgOpenaiUrl').value.trim() || 'https://api.openai.com/v1';
   config.claudeUrl = document.getElementById('cfgClaudeUrl').value.trim() || 'https://api.anthropic.com/v1/messages';
   config.seuil = parseFloat(document.getElementById('cfgSeuil').value);
+  config.engine = engine;
   try { sessionStorage.setItem('crhack_cfg', JSON.stringify(config)); } catch(e) {}
   toggleSettings();
 }
@@ -954,6 +959,16 @@ function setEngine(e) {
   document.querySelectorAll('.engine-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.engine === e);
   });
+  const hint = document.getElementById('hintEngine');
+  if (e === 'openai') {
+    document.getElementById('fieldOpenaiKey').style.display = 'block';
+    document.getElementById('fieldAnthropicKey').style.display = 'none';
+    hint.textContent = 'Whisper (transcription) + GPT-4o (analyse)';
+  } else {
+    document.getElementById('fieldOpenaiKey').style.display = 'none';
+    document.getElementById('fieldAnthropicKey').style.display = 'block';
+    hint.textContent = 'Claude Vision (transcription) + Claude Sonnet (analyse)';
+  }
 }
 
 // ─── FILE HANDLING ───
@@ -997,7 +1012,7 @@ async function transcribeWhisper(file) {
   form.append('model', 'whisper-1');
   form.append('language', 'fr');
 
-  const res = await fetch(config.whisperUrl, {
+  const res = await fetch(config.openaiUrl + '/audio/transcriptions', {
     method: 'POST',
     headers: { 'Authorization': 'Bearer ' + config.openaiKey },
     body: form
@@ -1045,16 +1060,16 @@ async function transcribeClaude(file) {
     })
   });
 
-  if (!res.ok) throw new Error('Claude error: ' + res.status + ' ' + await res.text());
+  if (!res.ok) throw new Error('Claude STT error: ' + res.status + ' ' + await res.text());
   const data = await res.json();
   return data.content.map(c => c.text || '').join('\n');
 }
 
 // ─── ANALYSIS ───
-async function analyzeWithClaude(transcript) {
+function buildAnalysisPrompt(transcript) {
   const axesDesc = AXES.map((a, i) => `${i+1}. ${a.name} (${a.desc})`).join('\n');
 
-  const prompt = `Tu es l'analyste du podcast (Cr)Hack!, un podcast vidéo où on hack des problèmes du quotidien ou tech avec l'IA en 5-10 min.
+  return `Tu es l'analyste du podcast (Cr)Hack!, un podcast vidéo où on hack des problèmes du quotidien ou tech avec l'IA en 5-10 min.
 
 Voici la transcription d'un pitch de problème envoyé par Benjamin :
 
@@ -1087,15 +1102,42 @@ Réponds UNIQUEMENT avec un JSON valide (pas de markdown, pas de backticks), for
   },
   "verdict_note": "1 phrase de conclusion"
 }`;
+}
 
-  const apiKey = config.anthropicKey;
-  const apiUrl = config.claudeUrl;
+async function analyzeWithOpenAI(transcript) {
+  const prompt = buildAnalysisPrompt(transcript);
 
-  const res = await fetch(apiUrl, {
+  const res = await fetch(config.openaiUrl + '/chat/completions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': apiKey,
+      'Authorization': 'Bearer ' + config.openaiKey
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o',
+      temperature: 0.4,
+      messages: [
+        { role: 'system', content: 'Tu réponds UNIQUEMENT en JSON valide, sans backticks ni texte autour.' },
+        { role: 'user', content: prompt }
+      ]
+    })
+  });
+
+  if (!res.ok) throw new Error('GPT error: ' + res.status + ' ' + await res.text());
+  const data = await res.json();
+  const text = data.choices[0].message.content;
+  const clean = text.replace(/```json|```/g, '').trim();
+  return JSON.parse(clean);
+}
+
+async function analyzeWithClaude(transcript) {
+  const prompt = buildAnalysisPrompt(transcript);
+
+  const res = await fetch(config.claudeUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': config.anthropicKey,
       'anthropic-version': '2023-06-01',
       'anthropic-dangerous-direct-browser-access': 'true'
     },
@@ -1106,7 +1148,7 @@ Réponds UNIQUEMENT avec un JSON valide (pas de markdown, pas de backticks), for
     })
   });
 
-  if (!res.ok) throw new Error('Analyse error: ' + res.status + ' ' + await res.text());
+  if (!res.ok) throw new Error('Claude error: ' + res.status + ' ' + await res.text());
   const data = await res.json();
   const text = data.content.map(c => c.text || '').join('');
   const clean = text.replace(/```json|```/g, '').trim();
@@ -1294,13 +1336,15 @@ function renderAxesDetail(scores, justifications) {
 async function launchAnalysis() {
   if (!selectedFile) return;
 
-  // Check keys
-  if (engine === 'whisper' && !config.openaiKey) {
+  // Check the one required key
+  if (engine === 'openai' && !config.openaiKey) {
     alert('Configure ta clé OpenAI dans les paramètres ⚙');
+    toggleSettings();
     return;
   }
-  if (!config.anthropicKey) {
+  if (engine === 'claude' && !config.anthropicKey) {
     alert('Configure ta clé Anthropic dans les paramètres ⚙');
+    toggleSettings();
     return;
   }
 
@@ -1317,7 +1361,7 @@ async function launchAnalysis() {
     document.getElementById('loadingText').textContent = 'Transcription en cours...';
 
     let transcript;
-    if (engine === 'whisper') {
+    if (engine === 'openai') {
       transcript = await transcribeWhisper(selectedFile);
     } else {
       transcript = await transcribeClaude(selectedFile);
@@ -1327,7 +1371,12 @@ async function launchAnalysis() {
     // Step 2: Analysis
     setStep(2, 'active');
     document.getElementById('loadingText').textContent = 'Analyse multi-axes...';
-    const analysis = await analyzeWithClaude(transcript);
+    let analysis;
+    if (engine === 'openai') {
+      analysis = await analyzeWithOpenAI(transcript);
+    } else {
+      analysis = await analyzeWithClaude(transcript);
+    }
     setStep(2, 'done');
 
     // Step 3: Scoring
