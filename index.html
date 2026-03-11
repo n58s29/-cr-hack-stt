@@ -1564,7 +1564,7 @@
       <div class="action-bar">
         <button class="action-btn action-btn--brief" onclick="generateBrief()">
           <span class="btn-icon">🚀</span>
-          <span class="btn-label">Brief maquette</span>
+          <span class="btn-label"Prompt Maquette</span>
         </button>
         <button class="action-btn action-btn--story" onclick="generateStoryboard()">
           <span class="btn-icon">🎬</span>
@@ -1747,6 +1747,34 @@ const AXES = [
   { key: 'sobriete_sens', name: 'Sens & Sobriété', icon: '🌱', desc: 'Vrai service, proportionné, pas de bullshit' }
 ];
 
+// ─── SECURITY UTILS ───
+const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 Mo (limite Whisper)
+const ALLOWED_TYPES = ['video/', 'audio/'];
+const ALLOWED_API_ORIGINS = ['https://api.openai.com', 'https://api.anthropic.com'];
+
+function esc(str) {
+  if (!str) return '';
+  const div = document.createElement('div');
+  div.textContent = String(str);
+  return div.innerHTML;
+}
+
+function safeUrl(url) {
+  if (!url) return '#';
+  try {
+    const u = new URL(url);
+    if (u.protocol === 'https:' || u.protocol === 'http:') return url;
+  } catch(e) {}
+  return '#';
+}
+
+function validateApiUrl(url) {
+  try {
+    const u = new URL(url);
+    return ALLOWED_API_ORIGINS.some(origin => url.startsWith(origin));
+  } catch(e) { return false; }
+}
+
 // ─── LOAD CONFIG ───
 try {
   const saved = JSON.parse(sessionStorage.getItem('crhack_cfg') || '{}');
@@ -1767,8 +1795,21 @@ function loadConfigUI() {
 function saveSettings() {
   config.openaiKey = document.getElementById('cfgOpenaiKey').value.trim();
   config.anthropicKey = document.getElementById('cfgAnthropicKey').value.trim();
-  config.openaiUrl = document.getElementById('cfgOpenaiUrl').value.trim() || 'https://api.openai.com/v1';
-  config.claudeUrl = document.getElementById('cfgClaudeUrl').value.trim() || 'https://api.anthropic.com/v1/messages';
+
+  const openaiUrlInput = document.getElementById('cfgOpenaiUrl').value.trim() || 'https://api.openai.com/v1';
+  const claudeUrlInput = document.getElementById('cfgClaudeUrl').value.trim() || 'https://api.anthropic.com/v1/messages';
+
+  if (!validateApiUrl(openaiUrlInput)) {
+    alert('URL OpenAI non autorisée — seule https://api.openai.com est acceptée');
+    return;
+  }
+  if (!validateApiUrl(claudeUrlInput)) {
+    alert('URL Claude non autorisée — seule https://api.anthropic.com est acceptée');
+    return;
+  }
+
+  config.openaiUrl = openaiUrlInput;
+  config.claudeUrl = claudeUrlInput;
   config.seuil = parseFloat(document.getElementById('cfgSeuil').value);
   config.engine = engine;
   try { sessionStorage.setItem('crhack_cfg', JSON.stringify(config)); } catch(e) {}
@@ -1813,6 +1854,14 @@ dropZone.addEventListener('drop', e => {
 fileInput.addEventListener('change', e => { if (e.target.files.length) handleFile(e.target.files[0]); });
 
 function handleFile(file) {
+  if (file.size > MAX_FILE_SIZE) {
+    alert('Fichier trop lourd : ' + (file.size / 1048576).toFixed(0) + ' Mo — max 25 Mo');
+    return;
+  }
+  if (!ALLOWED_TYPES.some(t => file.type.startsWith(t))) {
+    alert('Format non supporté : ' + (file.type || 'inconnu') + ' — vidéo ou audio uniquement');
+    return;
+  }
   selectedFile = file;
   dropZone.classList.add('has-file');
   const info = document.getElementById('fileInfo');
@@ -1846,7 +1895,7 @@ async function transcribeWhisper(file) {
     body: form
   });
 
-  if (!res.ok) throw new Error('Whisper error: ' + res.status + ' ' + await res.text());
+  if (!res.ok) { console.error('Whisper error:', res.status, await res.text()); throw new Error('Erreur transcription (code ' + res.status + ')'); }
   const data = await res.json();
   return data.text;
 }
@@ -1888,7 +1937,7 @@ async function transcribeClaude(file) {
     })
   });
 
-  if (!res.ok) throw new Error('Claude STT error: ' + res.status + ' ' + await res.text());
+  if (!res.ok) { console.error('Claude STT error:', res.status, await res.text()); throw new Error('Erreur transcription Claude (code ' + res.status + ')'); }
   const data = await res.json();
   return data.content.map(c => c.text || '').join('\n');
 }
@@ -1971,7 +2020,7 @@ async function analyzeWithOpenAI(transcript) {
     })
   });
 
-  if (!res.ok) throw new Error('GPT error: ' + res.status + ' ' + await res.text());
+  if (!res.ok) { console.error('GPT error:', res.status, await res.text()); throw new Error('Erreur analyse GPT (code ' + res.status + ')'); }
   const data = await res.json();
   const text = data.choices[0].message.content;
   const clean = text.replace(/```json|```/g, '').trim();
@@ -1996,7 +2045,7 @@ async function analyzeWithClaude(transcript) {
     })
   });
 
-  if (!res.ok) throw new Error('Claude error: ' + res.status + ' ' + await res.text());
+  if (!res.ok) { console.error('Claude error:', res.status, await res.text()); throw new Error('Erreur analyse Claude (code ' + res.status + ')'); }
   const data = await res.json();
   const text = data.content.map(c => c.text || '').join('');
   const clean = text.replace(/```json|```/g, '').trim();
@@ -2048,7 +2097,7 @@ function renderResults(analysis) {
 
   // Summary
   document.getElementById('summaryLine').innerHTML =
-    '<strong>' + (analysis.titre || 'Pitch') + '</strong> — ' + (analysis.resume || '');
+    '<strong>' + esc(analysis.titre || 'Pitch') + '</strong> — ' + esc(analysis.resume || '');
 
   // Radar
   renderRadar(scores);
@@ -2179,14 +2228,14 @@ function renderAxesDetail(scores, justifications) {
     card.title = 'Cliquer pour le détail';
     card.onclick = () => openDetail(axis.key);
     card.innerHTML = `
-      <div class="axis-icon">${axis.icon}</div>
+      <div class="axis-icon">${esc(axis.icon)}</div>
       <div class="axis-info">
-        <div class="axis-name">${axis.name}</div>
+        <div class="axis-name">${esc(axis.name)}</div>
         <div class="axis-bar-track">
           <div class="axis-bar-fill" style="background:${color}"></div>
         </div>
       </div>
-      <div class="axis-score-num" style="color:${color}">${score}</div>
+      <div class="axis-score-num" style="color:${color}">${esc(String(score))}</div>
     `;
     container.appendChild(card);
 
@@ -2262,7 +2311,7 @@ async function launchAnalysis() {
     document.getElementById('idleState').style.display = 'flex';
     document.getElementById('idleState').querySelector('.idle-icon').textContent = '❌';
     document.getElementById('idleState').querySelector('.idle-text').innerHTML =
-      '<strong style="color:var(--danger)">Erreur</strong><br>' + err.message;
+      '<strong style="color:var(--danger)">Erreur</strong><br>' + esc(err.message);
   }
 
   document.getElementById('launchBtn').disabled = false;
@@ -2582,7 +2631,7 @@ Réponds UNIQUEMENT en JSON valide (pas de markdown, pas de backticks) :
     console.error(err);
     document.getElementById('mortemLoading').innerHTML = `
       <div style="font-size:48px">❌</div>
-      <div class="mortem-loading-text" style="color:var(--danger);animation:none">${err.message}</div>
+      <div class="mortem-loading-text" style="color:var(--danger);animation:none">${esc(err.message)}</div>
     `;
   }
 
@@ -2606,7 +2655,7 @@ async function callPreMortemOpenAI(prompt) {
       ]
     })
   });
-  if (!res.ok) throw new Error('GPT error: ' + res.status);
+  if (!res.ok) { console.error('GPT mortem error:', res.status); throw new Error('Erreur pré-mortem GPT (code ' + res.status + ')'); }
   const data = await res.json();
   const text = data.choices[0].message.content.replace(/```json|```/g, '').trim();
   return JSON.parse(text);
@@ -2627,7 +2676,7 @@ async function callPreMortemClaude(prompt) {
       messages: [{ role: 'user', content: prompt }]
     })
   });
-  if (!res.ok) throw new Error('Claude error: ' + res.status);
+  if (!res.ok) { console.error('Claude mortem error:', res.status); throw new Error('Erreur pré-mortem Claude (code ' + res.status + ')'); }
   const data = await res.json();
   const text = data.content.map(c => c.text || '').join('').replace(/```json|```/g, '').trim();
   return JSON.parse(text);
@@ -2639,7 +2688,7 @@ function renderPreMortem(data) {
 
   // Risk gauge
   const risk = (data.risque_global || 'modéré').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  const riskDisplay = data.risque_global || 'modéré';
+  const riskDisplay = esc(data.risque_global || 'modéré');
   const riskClass = risk.includes('eleve') ? 'eleve' : risk.includes('faible') ? 'faible' : 'modere';
   const litCount = risk.includes('eleve') ? 3 : risk.includes('faible') ? 1 : 2;
 
@@ -2665,11 +2714,11 @@ function renderPreMortem(data) {
     card.style.animationDelay = (i * 0.1 + 0.1) + 's';
     card.innerHTML = `
       <div class="cause-header" onclick="this.parentElement.classList.toggle('open')">
-        <div class="cause-rank">#${cause.rang || i + 1}</div>
-        <div class="cause-emoji">${cause.emoji || '💀'}</div>
+        <div class="cause-rank">#${esc(String(cause.rang || i + 1))}</div>
+        <div class="cause-emoji">${esc(cause.emoji || '💀')}</div>
         <div class="cause-meta">
-          <div class="cause-category">${cause.categorie || ''}</div>
-          <div class="cause-titre">${cause.titre || ''}</div>
+          <div class="cause-category">${esc(cause.categorie || '')}</div>
+          <div class="cause-titre">${esc(cause.titre || '')}</div>
         </div>
         <div class="cause-chevron">▶</div>
       </div>
@@ -2679,21 +2728,21 @@ function renderPreMortem(data) {
             <div class="cause-section-icon">💬</div>
             <div>
               <div class="cause-section-label">Pourquoi c'est arrivé</div>
-              <div class="cause-section-content">${cause.pourquoi || ''}</div>
+              <div class="cause-section-content">${esc(cause.pourquoi || '')}</div>
             </div>
           </div>
           <div class="cause-section">
             <div class="cause-section-icon">⚠️</div>
             <div>
               <div class="cause-section-label">Signal faible détectable dès maintenant</div>
-              <div class="cause-section-content">${cause.signal_faible || ''}</div>
+              <div class="cause-section-content">${esc(cause.signal_faible || '')}</div>
             </div>
           </div>
           <div class="cause-section cause-contrefeu">
             <div class="cause-section-icon">🛡️</div>
             <div>
               <div class="cause-section-label">Contre-feu</div>
-              <div class="cause-section-content">${cause.contre_feu || ''}</div>
+              <div class="cause-section-content">${esc(cause.contre_feu || '')}</div>
             </div>
           </div>
         </div>
@@ -2707,7 +2756,7 @@ function renderPreMortem(data) {
     container.innerHTML += `
       <div class="mortem-synthese">
         <div class="mortem-synthese-label">⚰️ Épitaphe</div>
-        <div class="mortem-synthese-text">${data.synthese}</div>
+        <div class="mortem-synthese-text">${esc(data.synthese)}</div>
       </div>`;
   }
 
@@ -2758,8 +2807,10 @@ function openDetail(axisKey) {
       benchmarks.forEach(b => {
         const item = document.createElement('div');
         item.className = 'benchmark-item';
-        const link = b.url ? `<a class="benchmark-name" href="${b.url}" target="_blank" rel="noopener">${b.nom || 'Lien'} ↗</a>` : `<div class="benchmark-name">${b.nom || '?'}</div>`;
-        item.innerHTML = link + `<div class="benchmark-desc">${b.desc || ''}</div>`;
+        const safeName = esc(b.nom || '?');
+        const safeDesc = esc(b.desc || '');
+        const link = b.url ? `<a class="benchmark-name" href="${safeUrl(b.url)}" target="_blank" rel="noopener noreferrer">${safeName} ↗</a>` : `<div class="benchmark-name">${safeName}</div>`;
+        item.innerHTML = link + `<div class="benchmark-desc">${safeDesc}</div>`;
         benchList.appendChild(item);
       });
     }
