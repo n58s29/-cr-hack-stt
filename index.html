@@ -988,6 +988,330 @@
     box-shadow: 0 4px 24px rgba(168, 85, 247, 0.25);
   }
 
+  .action-btn--mortem {
+    border-color: var(--danger);
+    color: var(--danger);
+  }
+
+  .action-btn--mortem::before {
+    background: var(--danger);
+  }
+
+  .action-btn--mortem:hover {
+    color: var(--bg);
+    background: var(--danger);
+    box-shadow: 0 4px 24px rgba(255, 60, 92, 0.25);
+  }
+
+  .action-btn--mortem.loading {
+    pointer-events: none;
+    opacity: 0.7;
+  }
+
+  .action-btn--mortem.loading .btn-icon {
+    animation: skull-pulse 0.8s ease infinite;
+  }
+
+  @keyframes skull-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.3) rotate(-10deg); }
+  }
+
+  /* ─── Pre-mortem modal ─── */
+  .mortem-modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    width: 620px;
+    max-width: 94vw;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+
+  .mortem-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px 14px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    z-index: 2;
+  }
+
+  .mortem-title-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .mortem-skull {
+    font-size: 28px;
+    filter: drop-shadow(0 0 8px rgba(255, 60, 92, 0.4));
+  }
+
+  .mortem-title {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    font-size: 17px;
+    color: var(--danger);
+    letter-spacing: -0.3px;
+  }
+
+  .mortem-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 24px 24px;
+  }
+
+  .mortem-body::-webkit-scrollbar { width: 4px; }
+  .mortem-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* Risk gauge */
+  .risk-gauge {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding: 14px 16px;
+    background: var(--bg);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+
+  .risk-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .risk-bar {
+    flex: 1;
+    height: 8px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .risk-bar-segments {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    gap: 2px;
+  }
+
+  .risk-segment {
+    flex: 1;
+    border-radius: 3px;
+    opacity: 0.15;
+    transition: opacity 0.6s ease;
+  }
+
+  .risk-segment.lit { opacity: 1; }
+  .risk-segment:nth-child(1) { background: var(--accent); }
+  .risk-segment:nth-child(2) { background: var(--warn); }
+  .risk-segment:nth-child(3) { background: var(--danger); }
+
+  .risk-value {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .risk-value.faible { color: var(--accent); }
+  .risk-value.modere { color: var(--warn); }
+  .risk-value.eleve { color: var(--danger); }
+
+  /* Cause cards */
+  .cause-card {
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.3s;
+    animation: cause-enter 0.4s ease both;
+  }
+
+  .cause-card:hover { border-color: var(--danger); }
+
+  @keyframes cause-enter {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .cause-card:nth-child(1) { animation-delay: 0.1s; }
+  .cause-card:nth-child(2) { animation-delay: 0.2s; }
+  .cause-card:nth-child(3) { animation-delay: 0.3s; }
+  .cause-card:nth-child(4) { animation-delay: 0.4s; }
+  .cause-card:nth-child(5) { animation-delay: 0.5s; }
+
+  .cause-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--surface2);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .cause-rank {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 900;
+    font-size: 24px;
+    color: var(--danger);
+    opacity: 0.4;
+    min-width: 28px;
+    text-align: center;
+    line-height: 1;
+  }
+
+  .cause-emoji {
+    font-size: 22px;
+  }
+
+  .cause-meta {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .cause-category {
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  .cause-titre {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.4;
+  }
+
+  .cause-chevron {
+    color: var(--text-dim);
+    font-size: 14px;
+    transition: transform 0.2s;
+  }
+
+  .cause-card.open .cause-chevron { transform: rotate(90deg); }
+
+  .cause-detail {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+
+  .cause-card.open .cause-detail {
+    max-height: 500px;
+  }
+
+  .cause-detail-inner {
+    padding: 0 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .cause-section {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .cause-section-icon {
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .cause-section-content {
+    font-size: 11.5px;
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  .cause-section-label {
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+
+  .cause-contrefeu {
+    background: rgba(0, 255, 136, 0.05);
+    border: 1px solid rgba(0, 255, 136, 0.15);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+
+  .cause-contrefeu .cause-section-content {
+    color: var(--accent);
+  }
+
+  /* Synthesis box */
+  .mortem-synthese {
+    margin-top: 16px;
+    padding: 16px;
+    background: var(--danger-glow);
+    border: 1px solid rgba(255, 60, 92, 0.2);
+    border-radius: 10px;
+  }
+
+  .mortem-synthese-label {
+    font-size: 9px;
+    color: var(--danger);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    font-weight: 700;
+  }
+
+  .mortem-synthese-text {
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  /* Loading state inside modal */
+  .mortem-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    gap: 16px;
+  }
+
+  .mortem-loading-skull {
+    font-size: 48px;
+    animation: skull-float 1.5s ease infinite;
+  }
+
+  @keyframes skull-float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    25% { transform: translateY(-8px) rotate(-5deg); }
+    75% { transform: translateY(-4px) rotate(3deg); }
+  }
+
+  .mortem-loading-text {
+    font-size: 12px;
+    color: var(--text-dim);
+    animation: pulse-dot 1.5s infinite;
+  }
+
   .action-btn .btn-label {
     position: relative;
     z-index: 1;
@@ -1240,11 +1564,15 @@
       <div class="action-bar">
         <button class="action-btn action-btn--brief" onclick="generateBrief()">
           <span class="btn-icon">🚀</span>
-          <span class="btn-label">Maquette HTML</span>
+          <span class="btn-label">Brief maquette</span>
         </button>
         <button class="action-btn action-btn--story" onclick="generateStoryboard()">
           <span class="btn-icon">🎬</span>
           <span class="btn-label">Storyboard 3×3</span>
+        </button>
+        <button class="action-btn action-btn--mortem" id="mortemBtn" onclick="launchPreMortem()">
+          <span class="btn-icon">💀</span>
+          <span class="btn-label">Pré-mortem</span>
         </button>
       </div>
     </div>
@@ -1266,6 +1594,26 @@
     </div>
     <div class="brief-footer">
       <button class="brief-copy-btn" id="briefCopyBtn" onclick="copyBrief()">📋 &nbsp;Copier le prompt</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── PRE-MORTEM MODAL ─── -->
+<div class="detail-overlay" id="mortemOverlay" onclick="if(event.target===this)closeMortem()">
+  <div class="mortem-modal">
+    <div class="mortem-header">
+      <div class="mortem-title-area">
+        <div class="mortem-skull">💀</div>
+        <div class="mortem-title">Comment le projet est mort ?</div>
+      </div>
+      <button class="detail-close" onclick="closeMortem()">✕</button>
+    </div>
+    <div class="mortem-body" id="mortemBody">
+      <div class="mortem-loading" id="mortemLoading">
+        <div class="mortem-loading-skull">💀</div>
+        <div class="mortem-loading-text">Autopsie en cours...</div>
+      </div>
+      <div id="mortemContent" style="display:none"></div>
     </div>
   </div>
 </div>
@@ -2048,47 +2396,31 @@ function renderStoryboardPrompt() {
   const scores = a.scores || {};
   const justifs = a.justifications || {};
   const details = a.details || {};
-  const verdict = a.verdict_note || '';
-
-  // Build context summary for the AI
-  const scoresSummary = AXES.map(ax =>
-    `- ${ax.icon} ${ax.name}: ${scores[ax.key] || '?'}/10 — ${justifs[ax.key] || ''}`
-  ).join('\n');
 
   const detailsSummary = AXES.map(ax =>
     `${ax.name}: ${details[ax.key] || justifs[ax.key] || ''}`
   ).join('\n');
 
-  const avgScore = Object.values(scores).reduce((a, b) => a + b, 0) / Object.values(scores).length;
-  const verdictLabel = avgScore >= config.seuil ? 'GO' : avgScore >= config.seuil - 1.5 ? 'MAYBE' : 'NO GO';
-
   if (storyTarget === 'chatgpt') {
-    const prompt = `Génère une seule image composée de 9 vignettes disposées en grille 3×3. C'est un storyboard qui raconte l'histoire d'une personne confrontée à un problème du quotidien, et comment un hack/solution simple transforme sa situation.
+    const prompt = `Génère une seule image composée de 9 vignettes disposées en grille 3×3. C'est un storyboard qui raconte l'histoire d'une personne confrontée à un problème du quotidien, et comment une solution simple transforme concrètement sa situation.
+
+L'objectif est de raconter une tranche de vie. On doit sentir la transformation émotionnelle : du chaos vers la sérénité. Aucune référence à un podcast, une marque, ou un produit — juste l'humain et son problème.
 
 ═══════════════════════════════════════
-CONTEXTE — Podcast (Cr)Hack!
+LE PROBLÈME
 ═══════════════════════════════════════
 
-(Cr)Hack! est un podcast vidéo où deux passionnés (Mat & Benjamin) hackent des problèmes du quotidien ou tech en 5-10 minutes. Chaque épisode part d'un irritant réel et propose un proto/hack concret.
-
-**Titre de l'épisode** : ${titre}
-**Le problème** : ${resume}
-**Verdict** : ${verdictLabel} — ${verdict}
+**Titre** : ${titre}
+**En une phrase** : ${resume}
 
 ═══════════════════════════════════════
-SCORES D'ANALYSE (pour calibrer l'intensité narrative)
-═══════════════════════════════════════
-
-${scoresSummary}
-
-═══════════════════════════════════════
-DÉTAILS POUR NOURRIR LES VIGNETTES
+CONTEXTE POUR NOURRIR LES VIGNETTES
 ═══════════════════════════════════════
 
 ${detailsSummary}
 
 ═══════════════════════════════════════
-TRANSCRIPTION DU PITCH ORIGINAL
+CE QUE LA PERSONNE RACONTE (transcription)
 ═══════════════════════════════════════
 
 ${lastTranscript}
@@ -2099,30 +2431,31 @@ LES 9 VIGNETTES À GÉNÉRER
 
 Construis les 9 vignettes en suivant cet arc narratif :
 
-**ACTE 1 — Le problème (vignettes 1-3)**
-Vignette 1 — "Le quotidien" : Montre le personnage dans sa vie quotidienne, face au problème. L'environnement doit être réaliste et identifiable (maison, bureau, transport…). L'expression du personnage traduit la frustration/fatigue.
+**ACTE 1 — Le problème vécu (vignettes 1-3)**
+Vignette 1 — "Le quotidien" : Montre le personnage dans sa vie quotidienne, face au problème. L'environnement doit être réaliste et identifiable (maison, bureau, transport…). L'expression du personnage traduit la frustration/fatigue. On voit des détails concrets tirés de la transcription.
 Vignette 2 — "L'irritant en action" : Zoom sur le moment précis où le problème se manifeste. On voit concrètement ce qui ne va pas. Des éléments visuels symbolisent le chaos (éléments éparpillés, temps qui file, erreurs…).
-Vignette 3 — "Le déclic" : Le personnage a une idée ou tombe sur la solution. Transition visuelle : une ampoule, un écran qui s'allume, un message reçu. C'est le pivot du storyboard.
+Vignette 3 — "Le déclic" : Le personnage a une idée ou tombe sur la solution. Transition visuelle : une ampoule, un écran qui s'allume, un moment d'inspiration. C'est le pivot du storyboard.
 
-**ACTE 2 — Le hack (vignettes 4-6)**
-Vignette 4 — "La mise en place" : Le personnage commence à utiliser la solution. On voit l'outil/app/hack en action. L'ambiance change : plus lumineuse, plus ordonnée.
-Vignette 5 — "Le moment wow" : La scène la plus spectaculaire/satisfaisante. Le hack produit un résultat concret et visible. C'est LA vignette qu'on veut montrer en thumbnail.
+**ACTE 2 — La solution en action (vignettes 4-6)**
+Vignette 4 — "On s'y met" : Le personnage commence à utiliser la solution. On voit l'outil/astuce/méthode en action. L'ambiance change : plus lumineuse, plus ordonnée.
+Vignette 5 — "Le moment wow" : La scène la plus spectaculaire/satisfaisante. La solution produit un résultat concret et visible. C'est LA vignette clé — le point culminant visuel.
 Vignette 6 — "Ça marche !" : Le personnage réagit positivement. L'environnement reflète le changement. Les éléments qui étaient en chaos dans les vignettes 1-2 sont maintenant organisés/résolus.
 
-**ACTE 3 — La transformation (vignettes 7-9)**
+**ACTE 3 — La vie transformée (vignettes 7-9)**
 Vignette 7 — "Le nouveau quotidien" : Le personnage dans la même situation qu'à la vignette 1, mais transformée. On voit le contraste avant/après.
-Vignette 8 — "Le partage" : Le personnage montre ou partage le hack avec quelqu'un d'autre (collègue, ami, famille). Expression de surprise/enthousiasme de l'autre personne.
-Vignette 9 — "L'ouverture" : Vue plus large, le personnage est serein et confiant. Un petit clin d'œil au logo (Cr)Hack! ou au format podcast. Peut inclure un texte type "Et si on hackait ça ?"
+Vignette 8 — "Le partage" : Le personnage montre ou partage l'astuce avec quelqu'un d'autre (collègue, ami, famille). Expression de surprise/enthousiasme de l'autre personne.
+Vignette 9 — "La sérénité" : Vue plus large, le personnage est serein et confiant. Son environnement est apaisé. On sent que le problème appartient au passé.
 
 ═══════════════════════════════════════
 CONSIGNES VISUELLES
 ═══════════════════════════════════════
 
 - **Style** : illustration flat/semi-flat moderne, traits nets, couleurs vives. Ambiance bienveillante et accessible. Quelqu'un qui ne connaît rien à la tech doit comprendre l'histoire juste en regardant les dessins.
-- **Arc émotionnel** : Vignettes 1-2 = frustré/stressé → 3 = curieux/motivé → 4-5 = concentré/amusé → 6-7 = surpris/soulagé → 8-9 = confiant/serein. La transformation doit être visible dans la posture et l'expression.
+- **Arc émotionnel** : Vignettes 1-2 = frustré/stressé → 3 = curieux/motivé → 4-5 = concentré/amusé → 6-7 = surpris/soulagé → 8-9 = confiant/serein. La transformation doit être visible dans la posture et l'expression du personnage.
 - **Cohérence** : Le personnage principal est le même sur les 9 vignettes. L'environnement évolue mais reste reconnaissable.
 - **Numérotation** : Chaque vignette porte un numéro discret (1 à 9) dans un coin.
 - **Légendes** : Sous chaque vignette, une courte phrase en français qui pourrait servir de voix off.
+- **Aucun logo, aucun texte de marque, aucune référence à un podcast ou une émission.**
 
 Génère une seule image contenant les 9 vignettes en grille 3×3.`;
 
@@ -2130,20 +2463,20 @@ Génère une seule image contenant les 9 vignettes en grille 3×3.`;
 
   } else {
     // Midjourney prompt — more concise, visual-first
-    const prompt = `9-panel storyboard grid (3x3), comic book layout with numbered panels 1-9, telling the story of "${titre}".
+    const prompt = `9-panel storyboard grid (3x3), comic book layout with numbered panels 1-9, telling the story of someone dealing with: "${titre}" — ${resume}
 
 STORY ARC:
-Panel 1: A person frustrated with ${resume}. Stressed expression, chaotic environment.
-Panel 2: Close-up on the pain point — the problem happening in real time, visual symbols of chaos.
-Panel 3: The "aha" moment — lightbulb/eureka, the person discovers a solution on their phone/screen.
-Panel 4: Setting up the hack — the person starts using a simple tool/app, environment brightens.
-Panel 5: The WOW moment — the hack works spectacularly, satisfying visual result (HERO PANEL, slightly larger).
-Panel 6: Success reaction — joy, relief, everything that was chaotic is now organized.
-Panel 7: New normal — same situation as panel 1 but transformed, contrast before/after.
-Panel 8: Sharing the hack — showing someone else, their surprised/excited reaction.
-Panel 9: Wide shot, serene confidence, small "(Cr)Hack!" text watermark, "Et si on hackait ça ?"
+Panel 1: A person in their everyday setting, visibly frustrated by the problem. Realistic environment (home/office/commute), stressed expression, chaotic details around them.
+Panel 2: Close-up on the pain point happening in real time — the exact frustrating moment, visual symbols of disorder and wasted time.
+Panel 3: The "aha" moment — lightbulb, spark of inspiration, the person gets an idea for a solution.
+Panel 4: Taking action — the person starts implementing the fix/hack/method, environment begins to brighten and organize.
+Panel 5: The WOW moment — the solution works beautifully, satisfying visual payoff, hero panel (MOST IMPORTANT PANEL, make it the most visually striking).
+Panel 6: Success and relief — joy on the person's face, everything that was chaotic is now resolved and orderly.
+Panel 7: New normal — same setting as panel 1 but completely transformed, strong before/after contrast.
+Panel 8: Sharing — the person shows the trick to a friend/colleague/family member, their amazed reaction.
+Panel 9: Wide peaceful shot — the person serene and confident, problem is behind them, calm and balanced environment.
 
-STYLE: Modern flat illustration, clean lines, vibrant warm colors with teal/green accents, friendly and accessible tone, French everyday life setting (home/office/commute). Emotional arc visible through posture and expression: stressed → curious → amazed → serene. Same character throughout. Short French caption below each panel.
+STYLE: Modern flat illustration, clean lines, vibrant warm colors with teal/green accents, friendly and accessible tone, French everyday life setting. Emotional arc visible through posture and facial expression: stressed → curious → amazed → serene. Same consistent character throughout all 9 panels. Short French caption below each panel. No logos, no branding, no text watermarks.
 
 --ar 1:1 --style raw --v 6`;
 
@@ -2166,6 +2499,224 @@ function copyStoryboard() {
 
 function closeStoryboard() {
   document.getElementById('storyOverlay').classList.remove('open');
+}
+
+// ─── PRE-MORTEM ───
+async function launchPreMortem() {
+  if (!lastAnalysis || !lastTranscript) return;
+
+  const btn = document.getElementById('mortemBtn');
+  btn.classList.add('loading');
+
+  // Open modal with loading state
+  document.getElementById('mortemLoading').style.display = 'flex';
+  document.getElementById('mortemContent').style.display = 'none';
+  document.getElementById('mortemOverlay').classList.add('open');
+
+  const a = lastAnalysis;
+  const detailsSummary = AXES.map(ax =>
+    `${ax.name}: ${(a.details && a.details[ax.key]) || (a.justifications && a.justifications[ax.key]) || ''}`
+  ).join('\n');
+
+  const prompt = `Tu es un analyste critique spécialisé dans l'évaluation de solutions à des problèmes du quotidien. On te soumet un problème et une piste de solution. Ton rôle est de faire un pré-mortem : tu te projettes dans le futur, la solution a échoué, et tu dois expliquer pourquoi.
+
+## Le problème
+
+**Titre** : ${a.titre || 'Sans titre'}
+**Résumé** : ${a.resume || ''}
+
+## Contexte détaillé
+
+${detailsSummary}
+
+## Ce que la personne raconte
+
+${lastTranscript}
+
+## Ta mission
+
+Nous sommes 6 mois après le lancement de cette solution. Elle a échoué. Personne ne l'utilise.
+
+Génère exactement 5 causes d'échec, classées de la plus probable à la moins probable. Pour chaque cause :
+
+1. Un titre court et percutant (le genre de phrase qu'on dit en rétrospective)
+2. Pourquoi c'est arrivé — 2-3 phrases concrètes, pas de généralités
+3. Le signal faible qu'on aurait dû voir — un indice détectable dès maintenant dans le pitch
+4. Le contre-feu — une action simple pour réduire ce risque avant de commencer
+
+Catégories possibles (utilise celles qui sont pertinentes, pas forcément toutes) :
+- 🎯 Problème mal cadré
+- 👻 Adoption fantôme
+- 🏗️ Mur technique
+- 🦕 Déjà cracké
+- 🪶 Plume vs marteau
+- 🔄 Effet rebond
+- ⏳ Fenêtre ratée
+
+Réponds UNIQUEMENT en JSON valide (pas de markdown, pas de backticks) :
+{
+  "causes": [
+    {
+      "rang": 1,
+      "emoji": "🎯",
+      "categorie": "Problème mal cadré",
+      "titre": "...",
+      "pourquoi": "...",
+      "signal_faible": "...",
+      "contre_feu": "..."
+    }
+  ],
+  "risque_global": "faible | modéré | élevé",
+  "synthese": "2 phrases max"
+}`;
+
+  try {
+    let result;
+    if (engine === 'openai') {
+      result = await callPreMortemOpenAI(prompt);
+    } else {
+      result = await callPreMortemClaude(prompt);
+    }
+    renderPreMortem(result);
+  } catch (err) {
+    console.error(err);
+    document.getElementById('mortemLoading').innerHTML = `
+      <div style="font-size:48px">❌</div>
+      <div class="mortem-loading-text" style="color:var(--danger);animation:none">${err.message}</div>
+    `;
+  }
+
+  btn.classList.remove('loading');
+}
+
+async function callPreMortemOpenAI(prompt) {
+  const res = await fetch(config.openaiUrl + '/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + config.openaiKey
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o',
+      temperature: 0.6,
+      max_tokens: 2500,
+      messages: [
+        { role: 'system', content: 'Tu réponds UNIQUEMENT en JSON valide, sans backticks ni texte autour. Sois incisif, concret, jamais générique.' },
+        { role: 'user', content: prompt }
+      ]
+    })
+  });
+  if (!res.ok) throw new Error('GPT error: ' + res.status);
+  const data = await res.json();
+  const text = data.choices[0].message.content.replace(/```json|```/g, '').trim();
+  return JSON.parse(text);
+}
+
+async function callPreMortemClaude(prompt) {
+  const res = await fetch(config.claudeUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': config.anthropicKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 2500,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  if (!res.ok) throw new Error('Claude error: ' + res.status);
+  const data = await res.json();
+  const text = data.content.map(c => c.text || '').join('').replace(/```json|```/g, '').trim();
+  return JSON.parse(text);
+}
+
+function renderPreMortem(data) {
+  const container = document.getElementById('mortemContent');
+  container.innerHTML = '';
+
+  // Risk gauge
+  const risk = (data.risque_global || 'modéré').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const riskDisplay = data.risque_global || 'modéré';
+  const riskClass = risk.includes('eleve') ? 'eleve' : risk.includes('faible') ? 'faible' : 'modere';
+  const litCount = risk.includes('eleve') ? 3 : risk.includes('faible') ? 1 : 2;
+
+  let gaugeHTML = `
+    <div class="risk-gauge">
+      <div class="risk-label">Risque global</div>
+      <div class="risk-bar">
+        <div class="risk-bar-segments">
+          <div class="risk-segment ${litCount >= 1 ? 'lit' : ''}"></div>
+          <div class="risk-segment ${litCount >= 2 ? 'lit' : ''}"></div>
+          <div class="risk-segment ${litCount >= 3 ? 'lit' : ''}"></div>
+        </div>
+      </div>
+      <div class="risk-value ${riskClass}">${riskDisplay.toUpperCase()}</div>
+    </div>`;
+
+  container.innerHTML += gaugeHTML;
+
+  // Cause cards
+  (data.causes || []).forEach((cause, i) => {
+    const card = document.createElement('div');
+    card.className = 'cause-card' + (i === 0 ? ' open' : '');
+    card.style.animationDelay = (i * 0.1 + 0.1) + 's';
+    card.innerHTML = `
+      <div class="cause-header" onclick="this.parentElement.classList.toggle('open')">
+        <div class="cause-rank">#${cause.rang || i + 1}</div>
+        <div class="cause-emoji">${cause.emoji || '💀'}</div>
+        <div class="cause-meta">
+          <div class="cause-category">${cause.categorie || ''}</div>
+          <div class="cause-titre">${cause.titre || ''}</div>
+        </div>
+        <div class="cause-chevron">▶</div>
+      </div>
+      <div class="cause-detail">
+        <div class="cause-detail-inner">
+          <div class="cause-section">
+            <div class="cause-section-icon">💬</div>
+            <div>
+              <div class="cause-section-label">Pourquoi c'est arrivé</div>
+              <div class="cause-section-content">${cause.pourquoi || ''}</div>
+            </div>
+          </div>
+          <div class="cause-section">
+            <div class="cause-section-icon">⚠️</div>
+            <div>
+              <div class="cause-section-label">Signal faible détectable dès maintenant</div>
+              <div class="cause-section-content">${cause.signal_faible || ''}</div>
+            </div>
+          </div>
+          <div class="cause-section cause-contrefeu">
+            <div class="cause-section-icon">🛡️</div>
+            <div>
+              <div class="cause-section-label">Contre-feu</div>
+              <div class="cause-section-content">${cause.contre_feu || ''}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+
+  // Synthesis
+  if (data.synthese) {
+    container.innerHTML += `
+      <div class="mortem-synthese">
+        <div class="mortem-synthese-label">⚰️ Épitaphe</div>
+        <div class="mortem-synthese-text">${data.synthese}</div>
+      </div>`;
+  }
+
+  document.getElementById('mortemLoading').style.display = 'none';
+  container.style.display = 'block';
+}
+
+function closeMortem() {
+  document.getElementById('mortemOverlay').classList.remove('open');
 }
 
 // ─── DETAIL POPUP ───
@@ -2227,6 +2778,8 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     closeDetail();
     closeBrief();
+    closeStoryboard();
+    closeMortem();
     const settings = document.getElementById('settingsOverlay');
     if (settings.classList.contains('open')) toggleSettings();
   }
