@@ -1,0 +1,2866 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>(Cr)Hack! — GO / NO GO</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Outfit:wght@300;400;600;700;800;900&display=swap');
+
+  :root {
+    --bg: #07080a;
+    --surface: #0d0f13;
+    --surface2: #14171d;
+    --border: #1e222a;
+    --text: #e8eaed;
+    --text-dim: #6b7280;
+    --accent: #00ff88;
+    --accent-glow: rgba(0, 255, 136, 0.15);
+    --danger: #ff3c5c;
+    --danger-glow: rgba(255, 60, 92, 0.15);
+    --warn: #ffb800;
+    --cyan: #00d4ff;
+    --purple: #a855f7;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+    min-height: 100dvh;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* ─── Noise overlay ─── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  /* ─── Scanline ─── */
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+    pointer-events: none;
+    z-index: 998;
+  }
+
+  /* ─── Top bar — compact for mobile ─── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    height: 52px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo-area {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-mark {
+    width: 32px; height: 32px;
+    background: var(--accent);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 900;
+    font-size: 12px;
+    color: var(--bg);
+    letter-spacing: -0.5px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .logo-mark::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%);
+  }
+
+  .logo-title {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: -0.5px;
+  }
+
+  .logo-title .cr { color: var(--accent); }
+  .logo-title .hack { color: var(--text); }
+  .logo-title .bang { color: var(--danger); }
+
+  .logo-sub {
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-top: -2px;
+  }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .settings-btn {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-dim);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    transition: all 0.3s;
+  }
+
+  .settings-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: rotate(45deg);
+  }
+
+  /* ─── MAIN — single column flow ─── */
+  .main {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 52px);
+    min-height: calc(100dvh - 52px);
+  }
+
+  /* ─── Upload section — compact card ─── */
+  .upload-section {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .drop-zone:hover, .drop-zone.dragover {
+    border-color: var(--accent);
+    background: var(--accent-glow);
+  }
+
+  .drop-zone.has-file {
+    border-color: var(--accent);
+    border-style: solid;
+  }
+
+  .drop-icon {
+    font-size: 28px;
+    flex-shrink: 0;
+  }
+
+  .drop-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .drop-text {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.4;
+  }
+
+  .drop-text strong {
+    color: var(--accent);
+  }
+
+  .file-info {
+    font-size: 10px;
+    color: var(--accent);
+    word-break: break-all;
+    margin-top: 2px;
+  }
+
+  .file-input { display: none; }
+
+  /* Upload row: button + steps */
+  .upload-row {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+  }
+
+  .launch-btn {
+    flex: 1;
+    padding: 14px 16px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 1px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    background: linear-gradient(135deg, var(--accent), #00cc6a);
+    color: var(--bg);
+    transition: all 0.3s;
+    text-transform: uppercase;
+    position: relative;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .launch-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .launch-btn:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 30px var(--accent-glow);
+  }
+
+  /* ─── Progress steps — horizontal compact ─── */
+  .steps {
+    display: flex;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 9px;
+    color: var(--text-dim);
+    padding: 8px 8px;
+    border-radius: 8px;
+    transition: all 0.3s;
+    flex: 1;
+    justify-content: center;
+    background: var(--surface2);
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  .step.active {
+    color: var(--warn);
+    background: rgba(255, 184, 0, 0.1);
+  }
+
+  .step.done {
+    color: var(--accent);
+    background: var(--accent-glow);
+  }
+
+  .step.error {
+    color: var(--danger);
+    background: var(--danger-glow);
+  }
+
+  .step-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--border);
+    flex-shrink: 0;
+    transition: all 0.3s;
+  }
+
+  .step.active .step-dot {
+    background: var(--warn);
+    box-shadow: 0 0 8px var(--warn);
+    animation: pulse-dot 1.2s infinite;
+  }
+
+  .step.done .step-dot { background: var(--accent); }
+  .step.error .step-dot { background: var(--danger); }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .step-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ─── Results area — scrollable ─── */
+  .results-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 16px;
+    position: relative;
+    overflow-y: auto;
+  }
+
+  /* ─── Idle state ─── */
+  .idle-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    opacity: 0.3;
+    padding: 40px 0;
+  }
+
+  .idle-icon { font-size: 56px; }
+
+  .idle-text {
+    font-size: 12px;
+    color: var(--text-dim);
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  /* ─── Loading spinner ─── */
+  .loading-ring {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 0;
+  }
+
+  .loading-ring.visible { display: flex; }
+
+  .loading-ring svg {
+    width: 100px; height: 100px;
+    animation: spin 2s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-text {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 12px;
+    animation: pulse-dot 1.5s infinite;
+  }
+
+  /* ─── Results container ─── */
+  .results {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding-bottom: 24px;
+  }
+
+  .results.visible {
+    display: flex;
+    animation: fadeInUp 0.6s ease;
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ─── Problem summary ─── */
+  .summary-line {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-align: center;
+    line-height: 1.6;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    width: 100%;
+  }
+
+  .summary-line strong {
+    color: var(--text);
+  }
+
+  /* ─── Hero: Score + Verdict ─── */
+  .hero-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    width: 100%;
+  }
+
+  .ring-container {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    flex-shrink: 0;
+  }
+
+  .ring-svg {
+    width: 160px;
+    height: 160px;
+    transform: rotate(-90deg);
+  }
+
+  .ring-bg {
+    fill: none;
+    stroke: var(--border);
+    stroke-width: 10;
+  }
+
+  .ring-fill {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 10;
+    stroke-linecap: round;
+    stroke-dasharray: 502;
+    stroke-dashoffset: 502;
+    transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.5s;
+    filter: drop-shadow(0 0 8px var(--accent));
+  }
+
+  .ring-score {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+
+  .ring-number {
+    font-family: 'Outfit', sans-serif;
+    font-size: 48px;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--accent);
+    transition: color 0.5s;
+  }
+
+  .ring-label {
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* ─── Verdict ─── */
+  .verdict-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .verdict {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 900;
+    font-size: 36px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    text-shadow: 0 0 30px currentColor;
+    transition: color 0.5s;
+  }
+
+  .verdict.go { color: var(--accent); }
+  .verdict.nogo { color: var(--danger); }
+  .verdict.maybe { color: var(--warn); }
+
+  .verdict-sub {
+    font-size: 10px;
+    color: var(--text-dim);
+    max-width: 280px;
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  /* ─── Radar — stacked below ─── */
+  .radar-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .radar-svg {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    aspect-ratio: 320 / 280;
+  }
+
+  .radar-grid { stroke: var(--border); fill: none; stroke-width: 0.5; }
+  .radar-axis { stroke: var(--border); stroke-width: 0.5; }
+
+  .radar-shape {
+    fill: rgba(0, 255, 136, 0.1);
+    stroke: var(--accent);
+    stroke-width: 2;
+    transition: all 1s ease;
+  }
+
+  .radar-point {
+    fill: var(--accent);
+    transition: all 1s ease;
+    filter: drop-shadow(0 0 4px var(--accent));
+    cursor: pointer;
+  }
+
+  .radar-point:hover { r: 8; }
+
+  .radar-label-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    fill: var(--text-dim);
+    text-anchor: middle;
+    cursor: pointer;
+    transition: fill 0.2s;
+  }
+
+  .radar-label-text:hover { fill: var(--text); }
+
+  .radar-score-text {
+    font-family: 'Outfit', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    fill: var(--accent);
+    text-anchor: middle;
+    cursor: pointer;
+  }
+
+  /* ─── Axes detail cards — full width list ─── */
+  .axes-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+  }
+
+  .axis-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+
+  .axis-card:hover,
+  .axis-card:active {
+    border-color: var(--accent);
+    transform: translateX(4px);
+  }
+
+  .axis-icon { font-size: 16px; flex-shrink: 0; }
+  .axis-info { flex: 1; min-width: 0; }
+
+  .axis-name {
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .axis-bar-track {
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-top: 4px;
+    overflow: hidden;
+  }
+
+  .axis-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--accent);
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 0;
+  }
+
+  .axis-score-num {
+    font-family: 'Outfit', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--accent);
+    min-width: 28px;
+    text-align: right;
+  }
+
+  /* ─── Action buttons — horizontal row ─── */
+  .action-bar {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    padding-top: 8px;
+  }
+
+  .action-btn {
+    flex: 1;
+    padding: 12px 8px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.2px;
+    border: 2px solid;
+    border-radius: 10px;
+    cursor: pointer;
+    background: transparent;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+  }
+
+  .action-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .action-btn:hover::before { opacity: 1; }
+  .action-btn:active { transform: scale(0.97); }
+
+  .action-btn--brief {
+    border-color: var(--cyan);
+    color: var(--cyan);
+  }
+
+  .action-btn--brief::before { background: var(--cyan); }
+
+  .action-btn--brief:hover {
+    color: var(--bg);
+    background: var(--cyan);
+    box-shadow: 0 4px 24px rgba(0, 212, 255, 0.25);
+  }
+
+  .action-btn--story {
+    border-color: var(--purple);
+    color: var(--purple);
+  }
+
+  .action-btn--story::before { background: var(--purple); }
+
+  .action-btn--story:hover {
+    color: var(--bg);
+    background: var(--purple);
+    box-shadow: 0 4px 24px rgba(168, 85, 247, 0.25);
+  }
+
+  .action-btn--mortem {
+    border-color: var(--danger);
+    color: var(--danger);
+  }
+
+  .action-btn--mortem::before { background: var(--danger); }
+
+  .action-btn--mortem:hover {
+    color: var(--bg);
+    background: var(--danger);
+    box-shadow: 0 4px 24px rgba(255, 60, 92, 0.25);
+  }
+
+  .action-btn--mortem.loading {
+    pointer-events: none;
+    opacity: 0.7;
+  }
+
+  .action-btn--mortem.loading .btn-icon {
+    animation: skull-pulse 0.8s ease infinite;
+  }
+
+  @keyframes skull-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.3) rotate(-10deg); }
+  }
+
+  .action-btn .btn-label {
+    position: relative;
+    z-index: 1;
+    font-size: 10px;
+    line-height: 1.2;
+  }
+
+  .action-btn .btn-icon {
+    font-size: 18px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ─── OVERLAYS / MODALS — fullscreen on mobile ─── */
+  .detail-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(8px);
+    z-index: 1001;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .detail-overlay.open { display: flex; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* ─── Settings panel ─── */
+  .settings-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .settings-overlay.open { display: flex; }
+
+  .settings-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px 20px 0 0;
+    padding: 24px 20px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s ease;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  .settings-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .settings-title {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 17px;
+  }
+
+  .settings-close {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .settings-close:hover {
+    border-color: var(--danger);
+    color: var(--danger);
+  }
+
+  .field {
+    margin-bottom: 14px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .field input, .field select {
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .field input:focus, .field select:focus {
+    border-color: var(--accent);
+  }
+
+  .field input::placeholder { color: var(--text-dim); }
+
+  .field .hint {
+    font-size: 9px;
+    color: var(--text-dim);
+    margin-top: 4px;
+    opacity: 0.7;
+  }
+
+  .seuil-display {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .seuil-display input[type=range] {
+    flex: 1;
+    accent-color: var(--accent);
+    padding: 0;
+    background: transparent;
+    border: none;
+  }
+
+  .seuil-val {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    color: var(--accent);
+    min-width: 30px;
+    text-align: center;
+  }
+
+  .engine-toggle {
+    display: flex;
+    background: var(--bg);
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .engine-btn {
+    padding: 8px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    border: none;
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .engine-btn.active {
+    background: var(--accent);
+    color: var(--bg);
+    font-weight: 700;
+  }
+
+  .settings-save {
+    width: 100%;
+    padding: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 12px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    background: var(--accent);
+    color: var(--bg);
+    margin-top: 8px;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .settings-save:hover {
+    box-shadow: 0 4px 20px var(--accent-glow);
+  }
+
+  /* ─── Detail popup — sheet style ─── */
+  .detail-popup {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px 20px 0 0;
+    padding: 0;
+    width: 100%;
+    max-width: 500px;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+    animation: slideUp 0.3s ease;
+  }
+
+  .detail-popup::-webkit-scrollbar { width: 4px; }
+  .detail-popup::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    z-index: 2;
+  }
+
+  .detail-header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .detail-icon { font-size: 22px; }
+
+  .detail-title {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .detail-score-badge {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 900;
+    font-size: 20px;
+    min-width: 36px;
+    text-align: center;
+  }
+
+  .detail-close {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    margin-left: 8px;
+  }
+
+  .detail-close:hover {
+    border-color: var(--danger);
+    color: var(--danger);
+  }
+
+  .detail-body {
+    padding: 16px 20px 24px;
+  }
+
+  .detail-section-label {
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    margin-top: 14px;
+  }
+
+  .detail-section-label:first-child { margin-top: 0; }
+
+  .detail-text {
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  .detail-bar-track {
+    width: 100%;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    margin: 10px 0 4px;
+    overflow: hidden;
+  }
+
+  .detail-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.6s ease;
+  }
+
+  .benchmark-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .benchmark-item {
+    padding: 10px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    transition: border-color 0.2s;
+  }
+
+  .benchmark-item:hover { border-color: var(--cyan); }
+
+  .benchmark-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--cyan);
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 3px;
+  }
+
+  .benchmark-name:hover { text-decoration: underline; }
+
+  .benchmark-desc {
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  .benchmark-empty {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-style: italic;
+    padding: 8px 0;
+  }
+
+  /* ─── Pre-mortem modal ─── */
+  .mortem-modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px 20px 0 0;
+    width: 100%;
+    max-width: 500px;
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+    animation: slideUp 0.3s ease;
+  }
+
+  .mortem-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    z-index: 2;
+  }
+
+  .mortem-title-area {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .mortem-skull {
+    font-size: 24px;
+    filter: drop-shadow(0 0 8px rgba(255, 60, 92, 0.4));
+  }
+
+  .mortem-title {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    color: var(--danger);
+    letter-spacing: -0.3px;
+  }
+
+  .mortem-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px 24px;
+  }
+
+  .mortem-body::-webkit-scrollbar { width: 4px; }
+  .mortem-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* Risk gauge */
+  .risk-gauge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding: 12px 14px;
+    background: var(--bg);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+
+  .risk-label {
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .risk-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .risk-bar-segments {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    gap: 2px;
+  }
+
+  .risk-segment {
+    flex: 1;
+    border-radius: 3px;
+    opacity: 0.15;
+    transition: opacity 0.6s ease;
+  }
+
+  .risk-segment.lit { opacity: 1; }
+  .risk-segment:nth-child(1) { background: var(--accent); }
+  .risk-segment:nth-child(2) { background: var(--warn); }
+  .risk-segment:nth-child(3) { background: var(--danger); }
+
+  .risk-value {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .risk-value.faible { color: var(--accent); }
+  .risk-value.modere { color: var(--warn); }
+  .risk-value.eleve { color: var(--danger); }
+
+  /* Cause cards */
+  .cause-card {
+    margin-bottom: 10px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.3s;
+    animation: cause-enter 0.4s ease both;
+  }
+
+  .cause-card:hover { border-color: var(--danger); }
+
+  @keyframes cause-enter {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .cause-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background: var(--surface2);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .cause-rank {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 900;
+    font-size: 20px;
+    color: var(--danger);
+    opacity: 0.4;
+    min-width: 24px;
+    text-align: center;
+    line-height: 1;
+  }
+
+  .cause-emoji { font-size: 20px; }
+
+  .cause-meta {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .cause-category {
+    font-size: 8px;
+    color: var(--text-dim);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  .cause-titre {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.4;
+  }
+
+  .cause-chevron {
+    color: var(--text-dim);
+    font-size: 12px;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+
+  .cause-card.open .cause-chevron { transform: rotate(90deg); }
+
+  .cause-detail {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+
+  .cause-card.open .cause-detail {
+    max-height: 500px;
+  }
+
+  .cause-detail-inner {
+    padding: 0 14px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .cause-section {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .cause-section-icon {
+    font-size: 13px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .cause-section-content {
+    font-size: 11px;
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  .cause-section-label {
+    font-size: 8px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+
+  .cause-contrefeu {
+    background: rgba(0, 255, 136, 0.05);
+    border: 1px solid rgba(0, 255, 136, 0.15);
+    border-radius: 8px;
+    padding: 8px 10px;
+  }
+
+  .cause-contrefeu .cause-section-content {
+    color: var(--accent);
+  }
+
+  /* Synthesis box */
+  .mortem-synthese {
+    margin-top: 14px;
+    padding: 14px;
+    background: var(--danger-glow);
+    border: 1px solid rgba(255, 60, 92, 0.2);
+    border-radius: 10px;
+  }
+
+  .mortem-synthese-label {
+    font-size: 9px;
+    color: var(--danger);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    font-weight: 700;
+  }
+
+  .mortem-synthese-text {
+    font-size: 11px;
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  /* Loading state inside modal */
+  .mortem-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 50px 20px;
+    gap: 14px;
+  }
+
+  .mortem-loading-skull {
+    font-size: 44px;
+    animation: skull-float 1.5s ease infinite;
+  }
+
+  @keyframes skull-float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    25% { transform: translateY(-8px) rotate(-5deg); }
+    75% { transform: translateY(-4px) rotate(3deg); }
+  }
+
+  .mortem-loading-text {
+    font-size: 11px;
+    color: var(--text-dim);
+    animation: pulse-dot 1.5s infinite;
+  }
+
+  /* ─── Brief / Storyboard modals ─── */
+  .brief-modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px 20px 0 0;
+    width: 100%;
+    max-width: 500px;
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+    animation: slideUp 0.3s ease;
+  }
+
+  .brief-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 20px;
+  }
+
+  .brief-body::-webkit-scrollbar { width: 4px; }
+  .brief-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .brief-content {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text);
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-break: break-word;
+    padding: 14px 0;
+    margin: 0;
+  }
+
+  .brief-footer {
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .brief-copy-btn {
+    padding: 10px 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 11px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background: var(--cyan);
+    color: var(--bg);
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+
+  .brief-copy-btn:hover {
+    box-shadow: 0 4px 20px rgba(0, 212, 255, 0.25);
+  }
+
+  .brief-copy-btn.copied { background: var(--accent); }
+
+  /* ─── Storyboard extras ─── */
+  .story-target-bar {
+    display: flex;
+    gap: 0;
+    background: var(--bg);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    margin: 12px 20px 0;
+  }
+
+  .story-target-btn {
+    flex: 1;
+    padding: 10px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    border: none;
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+  }
+
+  .story-target-btn.active {
+    background: var(--purple);
+    color: var(--bg);
+    font-weight: 700;
+  }
+
+  .story-target-btn:not(.active):hover {
+    color: var(--text);
+    background: var(--surface2);
+  }
+
+  .story-hint {
+    font-size: 9px;
+    color: var(--text-dim);
+    text-align: center;
+    padding: 6px 20px 0;
+    opacity: 0.7;
+    line-height: 1.5;
+  }
+
+  .story-modal .brief-footer { gap: 8px; }
+
+  .story-copy-btn {
+    padding: 10px 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 11px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background: var(--purple);
+    color: var(--bg);
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+
+  .story-copy-btn:hover {
+    box-shadow: 0 4px 20px rgba(168, 85, 247, 0.25);
+  }
+
+  .story-copy-btn.copied { background: var(--accent); }
+
+  /* ─── Desktop enhancement (>600px) ─── */
+  @media (min-width: 600px) {
+    .topbar { padding: 12px 24px; }
+    .upload-section { padding: 20px 24px; }
+    .results-area { padding: 24px; }
+    .ring-container { width: 200px; height: 200px; }
+    .ring-svg { width: 200px; height: 200px; }
+    .ring-number { font-size: 56px; }
+    .verdict { font-size: 42px; }
+    .radar-svg { max-width: 360px; }
+    .radar-label-text { font-size: 9.5px; }
+    .summary-line { font-size: 12px; }
+    .action-btn { flex-direction: row; font-size: 13px; padding: 12px 18px; }
+    .action-btn .btn-label { font-size: 12px; }
+    .brief-content { font-size: 11px; }
+    .settings-panel { border-radius: 16px; margin-bottom: 20px; }
+    .detail-popup { border-radius: 16px; margin-bottom: 20px; max-height: 80vh; }
+    .mortem-modal { border-radius: 16px; margin-bottom: 20px; max-height: 85vh; }
+    .brief-modal { border-radius: 16px; margin-bottom: 20px; max-height: 85vh; }
+    .detail-overlay { align-items: center; }
+    .settings-overlay { align-items: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── TOP BAR ─── -->
+<div class="topbar">
+  <div class="logo-area">
+    <div class="logo-mark">CR</div>
+    <div>
+      <div class="logo-title"><span class="cr">(Cr)</span><span class="hack">Hack</span><span class="bang">!</span></div>
+      <div class="logo-sub">GO &nbsp;/ &nbsp;NO GO</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <button class="settings-btn" onclick="toggleSettings()" title="Paramètres">⚙</button>
+  </div>
+</div>
+
+<!-- ─── MAIN ─── -->
+<div class="main">
+
+  <!-- Upload section -->
+  <div class="upload-section">
+    <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+      <div class="drop-icon">🎬</div>
+      <div class="drop-content">
+        <div class="drop-text">
+          <strong>Drop le fichier de Benj</strong> — Vidéo ou audio
+        </div>
+        <div class="file-info" id="fileInfo" style="display:none"></div>
+      </div>
+      <input type="file" class="file-input" id="fileInput" accept="video/*,audio/*">
+    </div>
+
+    <div class="upload-row">
+      <button class="launch-btn" id="launchBtn" disabled onclick="launchAnalysis()">
+        ⚡ ANALYSER
+      </button>
+      <div class="steps">
+        <div class="step" id="step1"><div class="step-dot"></div><span class="step-label">Transcription</span></div>
+        <div class="step" id="step2"><div class="step-dot"></div><span class="step-label">Analyse</span></div>
+        <div class="step" id="step3"><div class="step-dot"></div><span class="step-label">Verdict</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results area -->
+  <div class="results-area">
+    <!-- Idle state -->
+    <div class="idle-state" id="idleState">
+      <div class="idle-icon">📡</div>
+      <div class="idle-text">En attente d'un pitch<br>de Benj...</div>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-ring" id="loadingRing">
+      <svg viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="40" fill="none" stroke="#1e222a" stroke-width="6"/>
+        <circle cx="50" cy="50" r="40" fill="none" stroke="#00ff88" stroke-width="6"
+          stroke-dasharray="60 190" stroke-linecap="round"/>
+      </svg>
+      <div class="loading-text" id="loadingText">Transcription en cours...</div>
+    </div>
+
+    <!-- Results -->
+    <div class="results" id="results">
+      <!-- Summary -->
+      <div class="summary-line" id="summaryLine"></div>
+
+      <!-- Hero: Ring + Verdict -->
+      <div class="hero-section">
+        <div class="ring-container">
+          <svg class="ring-svg" viewBox="0 0 180 180">
+            <circle class="ring-bg" cx="90" cy="90" r="80"/>
+            <circle class="ring-fill" id="ringFill" cx="90" cy="90" r="80"/>
+          </svg>
+          <div class="ring-score">
+            <div class="ring-number" id="ringNumber">—</div>
+            <div class="ring-label">Score global</div>
+          </div>
+        </div>
+
+        <div class="verdict-box">
+          <div class="verdict" id="verdictText">—</div>
+          <div class="verdict-sub" id="verdictSub"></div>
+        </div>
+      </div>
+
+      <!-- Radar + Detail -->
+      <div class="radar-section">
+        <svg class="radar-svg" id="radarSvg" viewBox="0 0 320 280"></svg>
+        <div class="axes-detail" id="axesDetail"></div>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="action-bar">
+        <button class="action-btn action-btn--brief" onclick="generateBrief()">
+          <span class="btn-icon">🚀</span>
+          <span class="btn-label">Maquette</span>
+        </button>
+        <button class="action-btn action-btn--story" onclick="generateStoryboard()">
+          <span class="btn-icon">🎬</span>
+          <span class="btn-label">Storyboard</span>
+        </button>
+        <button class="action-btn action-btn--mortem" id="mortemBtn" onclick="launchPreMortem()">
+          <span class="btn-icon">💀</span>
+          <span class="btn-label">Pré-mortem</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── BRIEF MODAL ─── -->
+<div class="detail-overlay" id="briefOverlay" onclick="if(event.target===this)closeBrief()">
+  <div class="brief-modal">
+    <div class="detail-header">
+      <div class="detail-header-left">
+        <div class="detail-icon">🚀</div>
+        <div class="detail-title">Brief maquette — prêt à coller</div>
+      </div>
+      <button class="detail-close" onclick="closeBrief()">✕</button>
+    </div>
+    <div class="brief-body">
+      <pre class="brief-content" id="briefContent"></pre>
+    </div>
+    <div class="brief-footer">
+      <button class="brief-copy-btn" id="briefCopyBtn" onclick="copyBrief()">📋 Copier le prompt</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── PRE-MORTEM MODAL ─── -->
+<div class="detail-overlay" id="mortemOverlay" onclick="if(event.target===this)closeMortem()">
+  <div class="mortem-modal">
+    <div class="mortem-header">
+      <div class="mortem-title-area">
+        <div class="mortem-skull">💀</div>
+        <div class="mortem-title">Comment le projet est mort ?</div>
+      </div>
+      <button class="detail-close" onclick="closeMortem()">✕</button>
+    </div>
+    <div class="mortem-body" id="mortemBody">
+      <div class="mortem-loading" id="mortemLoading">
+        <div class="mortem-loading-skull">💀</div>
+        <div class="mortem-loading-text">Autopsie en cours...</div>
+      </div>
+      <div id="mortemContent" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── STORYBOARD MODAL ─── -->
+<div class="detail-overlay" id="storyOverlay" onclick="if(event.target===this)closeStoryboard()">
+  <div class="brief-modal story-modal">
+    <div class="detail-header">
+      <div class="detail-header-left">
+        <div class="detail-icon">🎬</div>
+        <div class="detail-title">Storyboard 3×3 — prêt à coller</div>
+      </div>
+      <button class="detail-close" onclick="closeStoryboard()">✕</button>
+    </div>
+    <div class="story-target-bar">
+      <button class="story-target-btn active" data-target="chatgpt" onclick="setStoryTarget('chatgpt')">🤖 ChatGPT</button>
+      <button class="story-target-btn" data-target="midjourney" onclick="setStoryTarget('midjourney')">🎨 Midjourney</button>
+    </div>
+    <div class="story-hint" id="storyHint">Prompt optimisé DALL·E — colle-le dans ChatGPT et demande "génère cette image"</div>
+    <div class="brief-body">
+      <pre class="brief-content" id="storyContent"></pre>
+    </div>
+    <div class="brief-footer">
+      <button class="story-copy-btn" id="storyCopyBtn" onclick="copyStoryboard()">📋 Copier le prompt</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── SETTINGS OVERLAY ─── -->
+<div class="settings-overlay" id="settingsOverlay">
+  <div class="settings-panel">
+    <div class="settings-header">
+      <div class="settings-title">⚙ Paramètres</div>
+      <button class="settings-close" onclick="toggleSettings()">✕</button>
+    </div>
+
+    <div class="field">
+      <label>Pipeline</label>
+      <div class="engine-toggle" style="width:100%">
+        <button class="engine-btn active" data-engine="openai" onclick="setEngine('openai')" style="flex:1">🟢 Tout OpenAI</button>
+        <button class="engine-btn" data-engine="claude" onclick="setEngine('claude')" style="flex:1">🟣 Tout Claude</button>
+      </div>
+      <div class="hint" id="hintEngine">Whisper (transcription) + GPT-4o (analyse)</div>
+    </div>
+
+    <div class="field" id="fieldOpenaiKey">
+      <label>Clé API OpenAI</label>
+      <input type="password" id="cfgOpenaiKey" placeholder="sk-...">
+    </div>
+
+    <div class="field" id="fieldAnthropicKey" style="display:none">
+      <label>Clé API Anthropic</label>
+      <input type="password" id="cfgAnthropicKey" placeholder="sk-ant-...">
+    </div>
+
+    <div class="field" id="fieldOpenaiUrl" style="display:none">
+      <label>URL OpenAI (optionnel)</label>
+      <input type="text" id="cfgOpenaiUrl" placeholder="https://api.openai.com/v1">
+    </div>
+
+    <div class="field" id="fieldClaudeUrl" style="display:none">
+      <label>URL Claude (optionnel)</label>
+      <input type="text" id="cfgClaudeUrl" placeholder="https://api.anthropic.com/v1/messages">
+    </div>
+
+    <div style="text-align:right;margin-bottom:10px">
+      <button style="background:transparent;border:none;color:var(--text-dim);font-family:'JetBrains Mono',monospace;font-size:10px;cursor:pointer;text-decoration:underline" onclick="var s=document.getElementById('fieldOpenaiUrl').style.display==='none'?'block':'none';document.getElementById('fieldOpenaiUrl').style.display=s;document.getElementById('fieldClaudeUrl').style.display=s;">URLs avancées ▾</button>
+    </div>
+
+    <div class="field">
+      <label>Seuil GO / NO GO</label>
+      <div class="seuil-display">
+        <input type="range" id="cfgSeuil" min="1" max="10" step="0.5" value="6"
+          oninput="document.getElementById('seuilVal').textContent = this.value">
+        <div class="seuil-val" id="seuilVal">6</div>
+      </div>
+      <div class="hint">Score ≥ seuil = GO · Score &lt; seuil = NO GO</div>
+    </div>
+
+    <button class="settings-save" onclick="saveSettings()">Sauvegarder</button>
+  </div>
+</div>
+
+<!-- ─── DETAIL POPUP ─── -->
+<div class="detail-overlay" id="detailOverlay" onclick="if(event.target===this)closeDetail()">
+  <div class="detail-popup">
+    <div class="detail-header">
+      <div class="detail-header-left">
+        <div class="detail-icon" id="detailIcon"></div>
+        <div class="detail-title" id="detailTitle"></div>
+      </div>
+      <div class="detail-score-badge" id="detailScore"></div>
+      <button class="detail-close" onclick="closeDetail()">✕</button>
+    </div>
+    <div class="detail-body">
+      <div class="detail-bar-track"><div class="detail-bar-fill" id="detailBar"></div></div>
+
+      <div class="detail-section-label">Résumé</div>
+      <div class="detail-text" id="detailJustification"></div>
+
+      <div class="detail-section-label">Analyse détaillée</div>
+      <div class="detail-text" id="detailFull"></div>
+
+      <div id="detailBenchmarkSection" style="display:none">
+        <div class="detail-section-label">Benchmark — Solutions existantes</div>
+        <div class="benchmark-list" id="detailBenchmarkList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── STATE ───
+let engine = 'openai';
+let selectedFile = null;
+let lastAnalysis = null;
+let lastTranscript = '';
+let config = {
+  openaiKey: '',
+  anthropicKey: '',
+  openaiUrl: 'https://api.openai.com/v1',
+  claudeUrl: 'https://api.anthropic.com/v1/messages',
+  seuil: 6
+};
+
+const AXES = [
+  { key: 'intensite_probleme', name: 'Intensité du problème', icon: '🎯', desc: 'Pain point fort, fréquent et partagé' },
+  { key: 'potentiel_valeur', name: 'Potentiel de valeur', icon: '💡', desc: 'Gain tangible et mesurable' },
+  { key: 'faisabilite_format', name: 'Faisabilité format', icon: '🧩', desc: 'Proto/démo faisable en 5-10 min' },
+  { key: 'fraicheur', name: 'Fraîcheur', icon: '💎', desc: 'Angle neuf, pas vu 50 fois' },
+  { key: 'sobriete_sens', name: 'Sens & Sobriété', icon: '🌱', desc: 'Vrai service, proportionné, pas de bullshit' }
+];
+
+// ─── SECURITY UTILS ───
+const MAX_FILE_SIZE = 25 * 1024 * 1024;
+const ALLOWED_TYPES = ['video/', 'audio/'];
+const ALLOWED_API_ORIGINS = ['https://api.openai.com', 'https://api.anthropic.com'];
+
+function esc(str) {
+  if (!str) return '';
+  const div = document.createElement('div');
+  div.textContent = String(str);
+  return div.innerHTML;
+}
+
+function safeUrl(url) {
+  if (!url) return '#';
+  try {
+    const u = new URL(url);
+    if (u.protocol === 'https:' || u.protocol === 'http:') return url;
+  } catch(e) {}
+  return '#';
+}
+
+function validateApiUrl(url) {
+  try {
+    const u = new URL(url);
+    return ALLOWED_API_ORIGINS.some(origin => url.startsWith(origin));
+  } catch(e) { return false; }
+}
+
+// ─── LOAD CONFIG ───
+try {
+  const saved = JSON.parse(sessionStorage.getItem('crhack_cfg') || '{}');
+  Object.assign(config, saved);
+  if (saved.engine) engine = saved.engine;
+} catch(e) {}
+
+function loadConfigUI() {
+  document.getElementById('cfgOpenaiKey').value = config.openaiKey || '';
+  document.getElementById('cfgAnthropicKey').value = config.anthropicKey || '';
+  document.getElementById('cfgOpenaiUrl').value = config.openaiUrl || '';
+  document.getElementById('cfgClaudeUrl').value = config.claudeUrl || '';
+  document.getElementById('cfgSeuil').value = config.seuil;
+  document.getElementById('seuilVal').textContent = config.seuil;
+  setEngine(engine);
+}
+
+function saveSettings() {
+  config.openaiKey = document.getElementById('cfgOpenaiKey').value.trim();
+  config.anthropicKey = document.getElementById('cfgAnthropicKey').value.trim();
+
+  const openaiUrlInput = document.getElementById('cfgOpenaiUrl').value.trim() || 'https://api.openai.com/v1';
+  const claudeUrlInput = document.getElementById('cfgClaudeUrl').value.trim() || 'https://api.anthropic.com/v1/messages';
+
+  if (!validateApiUrl(openaiUrlInput)) {
+    alert('URL OpenAI non autorisée — seule https://api.openai.com est acceptée');
+    return;
+  }
+  if (!validateApiUrl(claudeUrlInput)) {
+    alert('URL Claude non autorisée — seule https://api.anthropic.com est acceptée');
+    return;
+  }
+
+  config.openaiUrl = openaiUrlInput;
+  config.claudeUrl = claudeUrlInput;
+  config.seuil = parseFloat(document.getElementById('cfgSeuil').value);
+  config.engine = engine;
+  try { sessionStorage.setItem('crhack_cfg', JSON.stringify(config)); } catch(e) {}
+  toggleSettings();
+}
+
+function toggleSettings() {
+  const ol = document.getElementById('settingsOverlay');
+  ol.classList.toggle('open');
+  if (ol.classList.contains('open')) loadConfigUI();
+}
+
+// ─── ENGINE TOGGLE ───
+function setEngine(e) {
+  engine = e;
+  document.querySelectorAll('.engine-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.engine === e);
+  });
+  const hint = document.getElementById('hintEngine');
+  if (e === 'openai') {
+    document.getElementById('fieldOpenaiKey').style.display = 'block';
+    document.getElementById('fieldAnthropicKey').style.display = 'none';
+    hint.textContent = 'Whisper (transcription) + GPT-4o (analyse)';
+  } else {
+    document.getElementById('fieldOpenaiKey').style.display = 'none';
+    document.getElementById('fieldAnthropicKey').style.display = 'block';
+    hint.textContent = 'Claude Vision (transcription) + Claude Sonnet (analyse)';
+  }
+}
+
+// ─── FILE HANDLING ───
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', e => { if (e.target.files.length) handleFile(e.target.files[0]); });
+
+function handleFile(file) {
+  if (file.size > MAX_FILE_SIZE) {
+    alert('Fichier trop lourd : ' + (file.size / 1048576).toFixed(0) + ' Mo — max 25 Mo');
+    return;
+  }
+  if (!ALLOWED_TYPES.some(t => file.type.startsWith(t))) {
+    alert('Format non supporté : ' + (file.type || 'inconnu') + ' — vidéo ou audio uniquement');
+    return;
+  }
+  selectedFile = file;
+  dropZone.classList.add('has-file');
+  const info = document.getElementById('fileInfo');
+  info.style.display = 'block';
+  info.textContent = file.name + ' (' + (file.size / 1048576).toFixed(1) + ' Mo)';
+  document.querySelector('.drop-icon').textContent = '✅';
+  document.querySelector('.drop-text').innerHTML = '<strong>Fichier prêt</strong>';
+  document.getElementById('launchBtn').disabled = false;
+}
+
+// ─── STEP MANAGEMENT ───
+function setStep(n, state) {
+  const el = document.getElementById('step' + n);
+  el.className = 'step ' + state;
+}
+
+function resetSteps() {
+  [1,2,3].forEach(n => setStep(n, ''));
+}
+
+// ─── TRANSCRIPTION ───
+async function transcribeWhisper(file) {
+  const form = new FormData();
+  form.append('file', file);
+  form.append('model', 'whisper-1');
+  form.append('language', 'fr');
+
+  const res = await fetch(config.openaiUrl + '/audio/transcriptions', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + config.openaiKey },
+    body: form
+  });
+
+  if (!res.ok) { console.error('Whisper error:', res.status, await res.text()); throw new Error('Erreur transcription (code ' + res.status + ')'); }
+  const data = await res.json();
+  return data.text;
+}
+
+async function transcribeClaude(file) {
+  const reader = new FileReader();
+  const base64 = await new Promise((res, rej) => {
+    reader.onload = () => res(reader.result.split(',')[1]);
+    reader.onerror = () => rej(new Error('Lecture fichier échouée'));
+    reader.readAsDataURL(file);
+  });
+
+  const mediaType = file.type || 'video/mp4';
+
+  const res = await fetch(config.claudeUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': config.anthropicKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 4000,
+      messages: [{
+        role: 'user',
+        content: [
+          {
+            type: mediaType.startsWith('video') ? 'video' : 'audio',
+            source: { type: 'base64', media_type: mediaType, data: base64 }
+          },
+          {
+            type: 'text',
+            text: 'Transcris mot pour mot le contenu audio/vidéo ci-dessus. Renvoie UNIQUEMENT la transcription brute en français, sans aucun commentaire.'
+          }
+        ]
+      }]
+    })
+  });
+
+  if (!res.ok) { console.error('Claude STT error:', res.status, await res.text()); throw new Error('Erreur transcription Claude (code ' + res.status + ')'); }
+  const data = await res.json();
+  return data.content.map(c => c.text || '').join('\n');
+}
+
+// ─── ANALYSIS ───
+function buildAnalysisPrompt(transcript) {
+  const axesDesc = AXES.map((a, i) => `${i+1}. ${a.name} (${a.desc})`).join('\n');
+
+  return `Tu es l'analyste du podcast (Cr)Hack!, un podcast vidéo où on hack des problèmes du quotidien ou tech en 5-10 min.
+
+Voici la transcription d'un pitch de problème envoyé par Benjamin :
+
+---
+${transcript}
+---
+
+L'objectif n'est PAS de savoir si l'IA est la bonne solution. L'objectif est de savoir si cette problématique mérite qu'on aille plus loin et qu'on en fasse un épisode.
+
+Évalue ce pitch sur ces 5 axes d'innovation (note de 1 à 10 chacun) :
+${axesDesc}
+
+CONSIGNES DE NOTATION :
+- "Intensité du problème" : un irritant quotidien vécu par beaucoup = note haute. Un "ça serait cool si..." = note basse.
+- "Potentiel de valeur" : du temps gagné, de l'argent économisé, des erreurs évitées, un confort net = note haute. Valeur floue ou marginale = note basse.
+- "Faisabilité format" : on peut montrer un résultat concret en 5-10 min = note haute. Trop complexe ou trop trivial = note basse.
+- "Fraîcheur" : angle neuf, hack inattendu, problème dont personne ne parle = note haute. Vu et revu partout = note basse.
+- "Sens & Sobriété" : sois exigeant. Vrai service rendu, proportionné au problème, dont on peut être fiers = note haute. Gadget inutile, bullshit qui gaspille des ressources = note basse.
+
+Réponds UNIQUEMENT avec un JSON valide (pas de markdown, pas de backticks), format :
+{
+  "titre": "Titre court du problème pitché",
+  "resume": "1 phrase résumant le problème",
+  "scores": {
+    "intensite_probleme": <1-10>,
+    "potentiel_valeur": <1-10>,
+    "faisabilite_format": <1-10>,
+    "fraicheur": <1-10>,
+    "sobriete_sens": <1-10>
+  },
+  "justifications": {
+    "intensite_probleme": "1 phrase courte",
+    "potentiel_valeur": "1 phrase courte",
+    "faisabilite_format": "1 phrase courte",
+    "fraicheur": "1 phrase courte",
+    "sobriete_sens": "1 phrase courte"
+  },
+  "details": {
+    "intensite_probleme": "2-4 phrases : qui est touché, à quelle fréquence, quelle intensité de douleur",
+    "potentiel_valeur": "2-4 phrases : quel gain concret, pour qui, mesurable comment",
+    "faisabilite_format": "2-4 phrases : est-ce faisable en 5-10 min, quel hack possible, quel résultat montrable",
+    "fraicheur": "2-4 phrases : paysage existant, ce qui a déjà été fait, en quoi cet angle est neuf (ou pas)",
+    "sobriete_sens": "2-4 phrases : utilité réelle, proportionnalité, impact environnemental/sociétal"
+  },
+  "benchmark": [
+    {"nom": "Nom de la solution existante", "url": "https://...", "desc": "1 phrase sur ce que ça fait et en quoi c'est similaire ou différent"}
+  ],
+  "verdict_note": "1 phrase de conclusion sur le potentiel épisode"
+}
+
+Pour "benchmark" : liste 0 à 5 solutions existantes sur le marché qui répondent au même besoin ou un besoin proche. Si tu n'en trouves aucune, renvoie un tableau vide [].`;
+}
+
+async function analyzeWithOpenAI(transcript) {
+  const prompt = buildAnalysisPrompt(transcript);
+
+  const res = await fetch(config.openaiUrl + '/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + config.openaiKey
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o',
+      temperature: 0.4,
+      max_tokens: 2500,
+      messages: [
+        { role: 'system', content: 'Tu réponds UNIQUEMENT en JSON valide, sans backticks ni texte autour.' },
+        { role: 'user', content: prompt }
+      ]
+    })
+  });
+
+  if (!res.ok) { console.error('GPT error:', res.status, await res.text()); throw new Error('Erreur analyse GPT (code ' + res.status + ')'); }
+  const data = await res.json();
+  const text = data.choices[0].message.content;
+  const clean = text.replace(/```json|```/g, '').trim();
+  return JSON.parse(clean);
+}
+
+async function analyzeWithClaude(transcript) {
+  const prompt = buildAnalysisPrompt(transcript);
+
+  const res = await fetch(config.claudeUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': config.anthropicKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 2500,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+
+  if (!res.ok) { console.error('Claude error:', res.status, await res.text()); throw new Error('Erreur analyse Claude (code ' + res.status + ')'); }
+  const data = await res.json();
+  const text = data.content.map(c => c.text || '').join('');
+  const clean = text.replace(/```json|```/g, '').trim();
+  return JSON.parse(clean);
+}
+
+// ─── RENDER RESULTS ───
+function getScoreColor(score, seuil) {
+  if (score >= seuil) return 'var(--accent)';
+  if (score >= seuil - 1.5) return 'var(--warn)';
+  return 'var(--danger)';
+}
+
+function renderResults(analysis) {
+  lastAnalysis = analysis;
+  const scores = analysis.scores;
+  const values = Object.values(scores);
+  const avg = values.reduce((a, b) => a + b, 0) / values.length;
+  const globalScore = Math.round(avg * 10) / 10;
+  const seuil = config.seuil;
+  const color = getScoreColor(globalScore, seuil);
+
+  // Ring
+  const circumference = 2 * Math.PI * 80;
+  const offset = circumference - (globalScore / 10) * circumference;
+  const ringFill = document.getElementById('ringFill');
+  ringFill.style.stroke = color;
+  ringFill.style.filter = `drop-shadow(0 0 8px ${color})`;
+  setTimeout(() => { ringFill.style.strokeDashoffset = offset; }, 100);
+
+  const ringNumber = document.getElementById('ringNumber');
+  ringNumber.style.color = color;
+  animateNumber(ringNumber, globalScore);
+
+  // Verdict
+  const verdictEl = document.getElementById('verdictText');
+  const verdictSub = document.getElementById('verdictSub');
+  if (globalScore >= seuil) {
+    verdictEl.textContent = 'GO';
+    verdictEl.className = 'verdict go';
+  } else if (globalScore >= seuil - 1.5) {
+    verdictEl.textContent = 'MAYBE';
+    verdictEl.className = 'verdict maybe';
+  } else {
+    verdictEl.textContent = 'NO GO';
+    verdictEl.className = 'verdict nogo';
+  }
+  verdictSub.textContent = analysis.verdict_note || '';
+
+  // Summary
+  document.getElementById('summaryLine').innerHTML =
+    '<strong>' + esc(analysis.titre || 'Pitch') + '</strong> — ' + esc(analysis.resume || '');
+
+  // Radar
+  renderRadar(scores);
+
+  // Axes detail
+  renderAxesDetail(scores, analysis.justifications || {});
+
+  // Show
+  document.getElementById('idleState').style.display = 'none';
+  document.getElementById('loadingRing').classList.remove('visible');
+  document.getElementById('results').classList.add('visible');
+}
+
+function animateNumber(el, target) {
+  let current = 0;
+  const step = target / 30;
+  const interval = setInterval(() => {
+    current += step;
+    if (current >= target) { current = target; clearInterval(interval); }
+    el.textContent = current.toFixed(1);
+  }, 40);
+}
+
+function renderRadar(scores) {
+  const svg = document.getElementById('radarSvg');
+  svg.innerHTML = '';
+  const cx = 160, cy = 130, maxR = 100;
+  const n = AXES.length;
+  const angleStep = (2 * Math.PI) / n;
+  const startAngle = -Math.PI / 2;
+
+  // Grid rings
+  [0.2, 0.4, 0.6, 0.8, 1.0].forEach(pct => {
+    const r = maxR * pct;
+    const pts = [];
+    for (let i = 0; i < n; i++) {
+      const a = startAngle + i * angleStep;
+      pts.push((cx + r * Math.cos(a)).toFixed(1) + ',' + (cy + r * Math.sin(a)).toFixed(1));
+    }
+    const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    poly.setAttribute('points', pts.join(' '));
+    poly.setAttribute('class', 'radar-grid');
+    svg.appendChild(poly);
+  });
+
+  // Axes lines
+  for (let i = 0; i < n; i++) {
+    const a = startAngle + i * angleStep;
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', cx); line.setAttribute('y1', cy);
+    line.setAttribute('x2', cx + maxR * Math.cos(a));
+    line.setAttribute('y2', cy + maxR * Math.sin(a));
+    line.setAttribute('class', 'radar-axis');
+    svg.appendChild(line);
+  }
+
+  // Data shape
+  const dataPts = [];
+  const pointEls = [];
+  AXES.forEach((axis, i) => {
+    const val = (scores[axis.key] || 0) / 10;
+    const a = startAngle + i * angleStep;
+    const x = cx + maxR * val * Math.cos(a);
+    const y = cy + maxR * val * Math.sin(a);
+    dataPts.push(x.toFixed(1) + ',' + y.toFixed(1));
+
+    // Point
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', x); circle.setAttribute('cy', y);
+    circle.setAttribute('r', 6);
+    circle.setAttribute('class', 'radar-point');
+    circle.style.cursor = 'pointer';
+    circle.addEventListener('click', () => openDetail(axis.key));
+    pointEls.push(circle);
+
+    // Hit area
+    const hitArea = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    hitArea.setAttribute('cx', x); hitArea.setAttribute('cy', y);
+    hitArea.setAttribute('r', 16);
+    hitArea.setAttribute('fill', 'transparent');
+    hitArea.style.cursor = 'pointer';
+    hitArea.addEventListener('click', () => openDetail(axis.key));
+    pointEls.push(hitArea);
+
+    // Label
+    const labelR = maxR + 22;
+    const lx = cx + labelR * Math.cos(a);
+    const ly = cy + labelR * Math.sin(a);
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', lx); text.setAttribute('y', ly);
+    text.setAttribute('class', 'radar-label-text');
+    text.setAttribute('dominant-baseline', 'middle');
+    text.style.cursor = 'pointer';
+    text.addEventListener('click', () => openDetail(axis.key));
+    text.textContent = axis.icon + ' ' + axis.name;
+    svg.appendChild(text);
+
+    // Score number
+    const sR = maxR + 36;
+    const sx = cx + sR * Math.cos(a);
+    const sy = cy + sR * Math.sin(a);
+    const scoreText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    scoreText.setAttribute('x', sx); scoreText.setAttribute('y', sy);
+    scoreText.setAttribute('class', 'radar-score-text');
+    scoreText.setAttribute('dominant-baseline', 'middle');
+    scoreText.style.cursor = 'pointer';
+    scoreText.addEventListener('click', () => openDetail(axis.key));
+    scoreText.textContent = scores[axis.key] || '0';
+    svg.appendChild(scoreText);
+  });
+
+  const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+  poly.setAttribute('points', dataPts.join(' '));
+  poly.setAttribute('class', 'radar-shape');
+  svg.appendChild(poly);
+  pointEls.forEach(p => svg.appendChild(p));
+}
+
+function renderAxesDetail(scores, justifications) {
+  const container = document.getElementById('axesDetail');
+  container.innerHTML = '';
+
+  AXES.forEach(axis => {
+    const score = scores[axis.key] || 0;
+    const color = getScoreColor(score, config.seuil);
+    const card = document.createElement('div');
+    card.className = 'axis-card';
+    card.title = 'Cliquer pour le détail';
+    card.onclick = () => openDetail(axis.key);
+    card.innerHTML = `
+      <div class="axis-icon">${esc(axis.icon)}</div>
+      <div class="axis-info">
+        <div class="axis-name">${esc(axis.name)}</div>
+        <div class="axis-bar-track">
+          <div class="axis-bar-fill" style="background:${color}"></div>
+        </div>
+      </div>
+      <div class="axis-score-num" style="color:${color}">${esc(String(score))}</div>
+    `;
+    container.appendChild(card);
+
+    setTimeout(() => {
+      card.querySelector('.axis-bar-fill').style.width = (score * 10) + '%';
+    }, 200);
+  });
+}
+
+// ─── MAIN LAUNCH ───
+async function launchAnalysis() {
+  if (!selectedFile) return;
+
+  if (engine === 'openai' && !config.openaiKey) {
+    alert('Configure ta clé OpenAI dans les paramètres ⚙');
+    toggleSettings();
+    return;
+  }
+  if (engine === 'claude' && !config.anthropicKey) {
+    alert('Configure ta clé Anthropic dans les paramètres ⚙');
+    toggleSettings();
+    return;
+  }
+
+  resetSteps();
+  document.getElementById('results').classList.remove('visible');
+  document.getElementById('idleState').style.display = 'none';
+  document.getElementById('loadingRing').classList.add('visible');
+  document.getElementById('launchBtn').disabled = true;
+
+  try {
+    setStep(1, 'active');
+    document.getElementById('loadingText').textContent = 'Transcription en cours...';
+
+    let transcript;
+    if (engine === 'openai') {
+      transcript = await transcribeWhisper(selectedFile);
+    } else {
+      transcript = await transcribeClaude(selectedFile);
+    }
+    lastTranscript = transcript;
+    setStep(1, 'done');
+
+    setStep(2, 'active');
+    document.getElementById('loadingText').textContent = 'Analyse multi-axes...';
+    let analysis;
+    if (engine === 'openai') {
+      analysis = await analyzeWithOpenAI(transcript);
+    } else {
+      analysis = await analyzeWithClaude(transcript);
+    }
+    setStep(2, 'done');
+
+    setStep(3, 'active');
+    document.getElementById('loadingText').textContent = 'Verdict...';
+    await new Promise(r => setTimeout(r, 600));
+    setStep(3, 'done');
+
+    renderResults(analysis);
+
+  } catch (err) {
+    console.error(err);
+    const activeStep = document.querySelector('.step.active');
+    if (activeStep) activeStep.className = 'step error';
+    document.getElementById('loadingRing').classList.remove('visible');
+    document.getElementById('idleState').style.display = 'flex';
+    document.getElementById('idleState').querySelector('.idle-icon').textContent = '❌';
+    document.getElementById('idleState').querySelector('.idle-text').innerHTML =
+      '<strong style="color:var(--danger)">Erreur</strong><br>' + esc(err.message);
+  }
+
+  document.getElementById('launchBtn').disabled = false;
+}
+
+// ─── BRIEF GENERATION ───
+function generateBrief() {
+  if (!lastAnalysis) return;
+
+  const a = lastAnalysis;
+  const scores = a.scores;
+  const justifs = a.justifications || {};
+  const details = a.details || {};
+  const benchmarks = a.benchmark || [];
+
+  let scoreBlock = AXES.map(ax =>
+    `  - ${ax.icon} ${ax.name} : ${scores[ax.key] || '?'}/10 → ${justifs[ax.key] || ''}`
+  ).join('\n');
+
+  let detailBlock = AXES.map(ax =>
+    `### ${ax.icon} ${ax.name} (${scores[ax.key] || '?'}/10)\n${details[ax.key] || justifs[ax.key] || 'Pas de détail.'}`
+  ).join('\n\n');
+
+  let benchBlock = '';
+  if (benchmarks.length > 0) {
+    benchBlock = `\n## Benchmark — Solutions existantes\n` +
+      benchmarks.map(b => `- ${b.nom}${b.url ? ' (' + b.url + ')' : ''} : ${b.desc || ''}`).join('\n');
+  }
+
+  const prompt = `Tu es un expert UX/UI et développeur frontend. Tu dois créer une maquette HTML fonctionnelle (single-file, HTML + CSS + JS inline) pour résoudre le problème décrit ci-dessous.
+
+═══════════════════════════════════════
+CONTEXTE — Podcast (Cr)Hack!
+═══════════════════════════════════════
+
+Ce problème a été pitché par Benjamin pour le podcast (Cr)Hack!, un format vidéo de 5-10 min où on hack des problèmes du quotidien/tech.
+
+**Titre** : ${a.titre || 'Sans titre'}
+**Résumé** : ${a.resume || ''}
+**Verdict** : ${a.verdict_note || ''}
+
+═══════════════════════════════════════
+ÉVALUATION INNOVATION (5 axes)
+═══════════════════════════════════════
+
+${scoreBlock}
+
+${detailBlock}
+${benchBlock}
+
+═══════════════════════════════════════
+TRANSCRIPTION COMPLÈTE DU PITCH
+═══════════════════════════════════════
+
+${lastTranscript}
+
+═══════════════════════════════════════
+[DESIGN — À DÉFINIR]
+═══════════════════════════════════════
+
+(Précise ici le style visuel souhaité : dark/light, couleurs, ambiance, inspirations, branding...)
+
+═══════════════════════════════════════
+CE QUE TU DOIS PRODUIRE
+═══════════════════════════════════════
+
+1. **Analyse UX rapide** : identifie le parcours utilisateur principal (3-5 étapes max)
+2. **Fonctionnalités clés** : liste les fonctionnalités priorisées (Must / Should / Could)
+3. **Maquette HTML** : génère un fichier HTML unique, fonctionnel, avec :
+   - Un design soigné et moderne
+   - Les interactions principales câblées (même simulées)
+   - Du contenu réaliste (pas de Lorem Ipsum)
+   - Responsive (mobile-first si pertinent)
+   - Zéro dépendance externe obligatoire (CDN OK pour icônes/fonts)
+
+La maquette doit être suffisamment concrète pour qu'on puisse la montrer à l'écran pendant l'épisode et que le spectateur comprenne immédiatement la valeur du hack.`;
+
+  document.getElementById('briefContent').textContent = prompt;
+  document.getElementById('briefOverlay').classList.add('open');
+  document.getElementById('briefCopyBtn').textContent = '📋 Copier le prompt';
+  document.getElementById('briefCopyBtn').classList.remove('copied');
+}
+
+function copyBrief() {
+  const text = document.getElementById('briefContent').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('briefCopyBtn');
+    btn.textContent = '✅ Copié !';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = '📋 Copier le prompt';
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
+
+function closeBrief() {
+  document.getElementById('briefOverlay').classList.remove('open');
+}
+
+// ─── STORYBOARD GENERATION ───
+let storyTarget = 'chatgpt';
+
+function setStoryTarget(target) {
+  storyTarget = target;
+  document.querySelectorAll('.story-target-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.target === target);
+  });
+  const hint = document.getElementById('storyHint');
+  if (target === 'chatgpt') {
+    hint.textContent = 'Prompt optimisé DALL·E — colle-le dans ChatGPT et demande "génère cette image"';
+  } else {
+    hint.textContent = 'Prompt optimisé Midjourney — colle-le dans /imagine sur Discord';
+  }
+  if (lastAnalysis) renderStoryboardPrompt();
+}
+
+function generateStoryboard() {
+  if (!lastAnalysis) return;
+  renderStoryboardPrompt();
+  document.getElementById('storyOverlay').classList.add('open');
+  document.getElementById('storyCopyBtn').textContent = '📋 Copier le prompt';
+  document.getElementById('storyCopyBtn').classList.remove('copied');
+}
+
+function renderStoryboardPrompt() {
+  const a = lastAnalysis;
+  const titre = a.titre || 'Sans titre';
+  const resume = a.resume || '';
+  const scores = a.scores || {};
+  const justifs = a.justifications || {};
+  const details = a.details || {};
+
+  const detailsSummary = AXES.map(ax =>
+    `${ax.name}: ${details[ax.key] || justifs[ax.key] || ''}`
+  ).join('\n');
+
+  if (storyTarget === 'chatgpt') {
+    const prompt = `Génère une seule image composée de 9 vignettes disposées en grille 3×3. C'est un storyboard qui raconte l'histoire d'une personne confrontée à un problème du quotidien, et comment une solution simple transforme concrètement sa situation.
+
+L'objectif est de raconter une tranche de vie. On doit sentir la transformation émotionnelle : du chaos vers la sérénité. Aucune référence à un podcast, une marque, ou un produit — juste l'humain et son problème.
+
+═══════════════════════════════════════
+LE PROBLÈME
+═══════════════════════════════════════
+
+**Titre** : ${titre}
+**En une phrase** : ${resume}
+
+═══════════════════════════════════════
+CONTEXTE POUR NOURRIR LES VIGNETTES
+═══════════════════════════════════════
+
+${detailsSummary}
+
+═══════════════════════════════════════
+CE QUE LA PERSONNE RACONTE (transcription)
+═══════════════════════════════════════
+
+${lastTranscript}
+
+═══════════════════════════════════════
+LES 9 VIGNETTES À GÉNÉRER
+═══════════════════════════════════════
+
+Construis les 9 vignettes en suivant cet arc narratif :
+
+**ACTE 1 — Le problème vécu (vignettes 1-3)**
+Vignette 1 — "Le quotidien" : Montre le personnage dans sa vie quotidienne, face au problème. L'environnement doit être réaliste et identifiable (maison, bureau, transport…). L'expression du personnage traduit la frustration/fatigue. On voit des détails concrets tirés de la transcription.
+Vignette 2 — "L'irritant en action" : Zoom sur le moment précis où le problème se manifeste. On voit concrètement ce qui ne va pas. Des éléments visuels symbolisent le chaos (éléments éparpillés, temps qui file, erreurs…).
+Vignette 3 — "Le déclic" : Le personnage a une idée ou tombe sur la solution. Transition visuelle : une ampoule, un écran qui s'allume, un moment d'inspiration. C'est le pivot du storyboard.
+
+**ACTE 2 — La solution en action (vignettes 4-6)**
+Vignette 4 — "On s'y met" : Le personnage commence à utiliser la solution. On voit l'outil/astuce/méthode en action. L'ambiance change : plus lumineuse, plus ordonnée.
+Vignette 5 — "Le moment wow" : La scène la plus spectaculaire/satisfaisante. La solution produit un résultat concret et visible. C'est LA vignette clé — le point culminant visuel.
+Vignette 6 — "Ça marche !" : Le personnage réagit positivement. L'environnement reflète le changement. Les éléments qui étaient en chaos dans les vignettes 1-2 sont maintenant organisés/résolus.
+
+**ACTE 3 — La vie transformée (vignettes 7-9)**
+Vignette 7 — "Le nouveau quotidien" : Le personnage dans la même situation qu'à la vignette 1, mais transformée. On voit le contraste avant/après.
+Vignette 8 — "Le partage" : Le personnage montre ou partage l'astuce avec quelqu'un d'autre (collègue, ami, famille). Expression de surprise/enthousiasme de l'autre personne.
+Vignette 9 — "La sérénité" : Vue plus large, le personnage est serein et confiant. Son environnement est apaisé. On sent que le problème appartient au passé.
+
+═══════════════════════════════════════
+CONSIGNES VISUELLES
+═══════════════════════════════════════
+
+- **Style** : illustration flat/semi-flat moderne, traits nets, couleurs vives. Ambiance bienveillante et accessible. Quelqu'un qui ne connaît rien à la tech doit comprendre l'histoire juste en regardant les dessins.
+- **Arc émotionnel** : Vignettes 1-2 = frustré/stressé → 3 = curieux/motivé → 4-5 = concentré/amusé → 6-7 = surpris/soulagé → 8-9 = confiant/serein. La transformation doit être visible dans la posture et l'expression du personnage.
+- **Cohérence** : Le personnage principal est le même sur les 9 vignettes. L'environnement évolue mais reste reconnaissable.
+- **Numérotation** : Chaque vignette porte un numéro discret (1 à 9) dans un coin.
+- **Légendes** : Sous chaque vignette, une courte phrase en français qui pourrait servir de voix off.
+- **Aucun logo, aucun texte de marque, aucune référence à un podcast ou une émission.**
+
+Génère une seule image contenant les 9 vignettes en grille 3×3.`;
+
+    document.getElementById('storyContent').textContent = prompt;
+
+  } else {
+    const prompt = `9-panel storyboard grid (3x3), comic book layout with numbered panels 1-9, telling the story of someone dealing with: "${titre}" — ${resume}
+
+STORY ARC:
+Panel 1: A person in their everyday setting, visibly frustrated by the problem. Realistic environment (home/office/commute), stressed expression, chaotic details around them.
+Panel 2: Close-up on the pain point happening in real time — the exact frustrating moment, visual symbols of disorder and wasted time.
+Panel 3: The "aha" moment — lightbulb, spark of inspiration, the person gets an idea for a solution.
+Panel 4: Taking action — the person starts implementing the fix/hack/method, environment begins to brighten and organize.
+Panel 5: The WOW moment — the solution works beautifully, satisfying visual payoff, hero panel (MOST IMPORTANT PANEL, make it the most visually striking).
+Panel 6: Success and relief — joy on the person's face, everything that was chaotic is now resolved and orderly.
+Panel 7: New normal — same setting as panel 1 but completely transformed, strong before/after contrast.
+Panel 8: Sharing — the person shows the trick to a friend/colleague/family member, their amazed reaction.
+Panel 9: Wide peaceful shot — the person serene and confident, problem is behind them, calm and balanced environment.
+
+STYLE: Modern flat illustration, clean lines, vibrant warm colors with teal/green accents, friendly and accessible tone, French everyday life setting. Emotional arc visible through posture and facial expression: stressed → curious → amazed → serene. Same consistent character throughout all 9 panels. Short French caption below each panel. No logos, no branding, no text watermarks.
+
+--ar 1:1 --style raw --v 6`;
+
+    document.getElementById('storyContent').textContent = prompt;
+  }
+}
+
+function copyStoryboard() {
+  const text = document.getElementById('storyContent').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('storyCopyBtn');
+    btn.textContent = '✅ Copié !';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = '📋 Copier le prompt';
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
+
+function closeStoryboard() {
+  document.getElementById('storyOverlay').classList.remove('open');
+}
+
+// ─── PRE-MORTEM ───
+async function launchPreMortem() {
+  if (!lastAnalysis || !lastTranscript) return;
+
+  const btn = document.getElementById('mortemBtn');
+  btn.classList.add('loading');
+
+  document.getElementById('mortemLoading').style.display = 'flex';
+  document.getElementById('mortemContent').style.display = 'none';
+  document.getElementById('mortemOverlay').classList.add('open');
+
+  const a = lastAnalysis;
+  const detailsSummary = AXES.map(ax =>
+    `${ax.name}: ${(a.details && a.details[ax.key]) || (a.justifications && a.justifications[ax.key]) || ''}`
+  ).join('\n');
+
+  const prompt = `Tu es un analyste critique spécialisé dans l'évaluation de solutions à des problèmes du quotidien. On te soumet un problème et une piste de solution. Ton rôle est de faire un pré-mortem : tu te projettes dans le futur, la solution a échoué, et tu dois expliquer pourquoi.
+
+## Le problème
+
+**Titre** : ${a.titre || 'Sans titre'}
+**Résumé** : ${a.resume || ''}
+
+## Contexte détaillé
+
+${detailsSummary}
+
+## Ce que la personne raconte
+
+${lastTranscript}
+
+## Ta mission
+
+Nous sommes 6 mois après le lancement de cette solution. Elle a échoué. Personne ne l'utilise.
+
+Génère exactement 5 causes d'échec, classées de la plus probable à la moins probable. Pour chaque cause :
+
+1. Un titre court et percutant (le genre de phrase qu'on dit en rétrospective)
+2. Pourquoi c'est arrivé — 2-3 phrases concrètes, pas de généralités
+3. Le signal faible qu'on aurait dû voir — un indice détectable dès maintenant dans le pitch
+4. Le contre-feu — une action simple pour réduire ce risque avant de commencer
+
+Catégories possibles (utilise celles qui sont pertinentes, pas forcément toutes) :
+- 🎯 Problème mal cadré
+- 👻 Adoption fantôme
+- 🏗️ Mur technique
+- 🦕 Déjà cracké
+- 🪶 Plume vs marteau
+- 🔄 Effet rebond
+- ⏳ Fenêtre ratée
+
+Réponds UNIQUEMENT en JSON valide (pas de markdown, pas de backticks) :
+{
+  "causes": [
+    {
+      "rang": 1,
+      "emoji": "🎯",
+      "categorie": "Problème mal cadré",
+      "titre": "...",
+      "pourquoi": "...",
+      "signal_faible": "...",
+      "contre_feu": "..."
+    }
+  ],
+  "risque_global": "faible | modéré | élevé",
+  "synthese": "2 phrases max"
+}`;
+
+  try {
+    let result;
+    if (engine === 'openai') {
+      result = await callPreMortemOpenAI(prompt);
+    } else {
+      result = await callPreMortemClaude(prompt);
+    }
+    renderPreMortem(result);
+  } catch (err) {
+    console.error(err);
+    document.getElementById('mortemLoading').innerHTML = `
+      <div style="font-size:48px">❌</div>
+      <div class="mortem-loading-text" style="color:var(--danger);animation:none">${esc(err.message)}</div>
+    `;
+  }
+
+  btn.classList.remove('loading');
+}
+
+async function callPreMortemOpenAI(prompt) {
+  const res = await fetch(config.openaiUrl + '/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + config.openaiKey
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o',
+      temperature: 0.6,
+      max_tokens: 2500,
+      messages: [
+        { role: 'system', content: 'Tu réponds UNIQUEMENT en JSON valide, sans backticks ni texte autour. Sois incisif, concret, jamais générique.' },
+        { role: 'user', content: prompt }
+      ]
+    })
+  });
+  if (!res.ok) { console.error('GPT mortem error:', res.status); throw new Error('Erreur pré-mortem GPT (code ' + res.status + ')'); }
+  const data = await res.json();
+  const text = data.choices[0].message.content.replace(/```json|```/g, '').trim();
+  return JSON.parse(text);
+}
+
+async function callPreMortemClaude(prompt) {
+  const res = await fetch(config.claudeUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': config.anthropicKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 2500,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  if (!res.ok) { console.error('Claude mortem error:', res.status); throw new Error('Erreur pré-mortem Claude (code ' + res.status + ')'); }
+  const data = await res.json();
+  const text = data.content.map(c => c.text || '').join('').replace(/```json|```/g, '').trim();
+  return JSON.parse(text);
+}
+
+function renderPreMortem(data) {
+  const container = document.getElementById('mortemContent');
+  container.innerHTML = '';
+
+  const risk = (data.risque_global || 'modéré').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const riskDisplay = esc(data.risque_global || 'modéré');
+  const riskClass = risk.includes('eleve') ? 'eleve' : risk.includes('faible') ? 'faible' : 'modere';
+  const litCount = risk.includes('eleve') ? 3 : risk.includes('faible') ? 1 : 2;
+
+  let gaugeHTML = `
+    <div class="risk-gauge">
+      <div class="risk-label">Risque global</div>
+      <div class="risk-bar">
+        <div class="risk-bar-segments">
+          <div class="risk-segment ${litCount >= 1 ? 'lit' : ''}"></div>
+          <div class="risk-segment ${litCount >= 2 ? 'lit' : ''}"></div>
+          <div class="risk-segment ${litCount >= 3 ? 'lit' : ''}"></div>
+        </div>
+      </div>
+      <div class="risk-value ${riskClass}">${riskDisplay.toUpperCase()}</div>
+    </div>`;
+
+  container.innerHTML += gaugeHTML;
+
+  (data.causes || []).forEach((cause, i) => {
+    const card = document.createElement('div');
+    card.className = 'cause-card' + (i === 0 ? ' open' : '');
+    card.style.animationDelay = (i * 0.1 + 0.1) + 's';
+    card.innerHTML = `
+      <div class="cause-header" onclick="this.parentElement.classList.toggle('open')">
+        <div class="cause-rank">#${esc(String(cause.rang || i + 1))}</div>
+        <div class="cause-emoji">${esc(cause.emoji || '💀')}</div>
+        <div class="cause-meta">
+          <div class="cause-category">${esc(cause.categorie || '')}</div>
+          <div class="cause-titre">${esc(cause.titre || '')}</div>
+        </div>
+        <div class="cause-chevron">▶</div>
+      </div>
+      <div class="cause-detail">
+        <div class="cause-detail-inner">
+          <div class="cause-section">
+            <div class="cause-section-icon">💬</div>
+            <div>
+              <div class="cause-section-label">Pourquoi c'est arrivé</div>
+              <div class="cause-section-content">${esc(cause.pourquoi || '')}</div>
+            </div>
+          </div>
+          <div class="cause-section">
+            <div class="cause-section-icon">⚠️</div>
+            <div>
+              <div class="cause-section-label">Signal faible détectable dès maintenant</div>
+              <div class="cause-section-content">${esc(cause.signal_faible || '')}</div>
+            </div>
+          </div>
+          <div class="cause-section cause-contrefeu">
+            <div class="cause-section-icon">🛡️</div>
+            <div>
+              <div class="cause-section-label">Contre-feu</div>
+              <div class="cause-section-content">${esc(cause.contre_feu || '')}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+
+  if (data.synthese) {
+    container.innerHTML += `
+      <div class="mortem-synthese">
+        <div class="mortem-synthese-label">⚰️ Épitaphe</div>
+        <div class="mortem-synthese-text">${esc(data.synthese)}</div>
+      </div>`;
+  }
+
+  document.getElementById('mortemLoading').style.display = 'none';
+  container.style.display = 'block';
+}
+
+function closeMortem() {
+  document.getElementById('mortemOverlay').classList.remove('open');
+}
+
+// ─── DETAIL POPUP ───
+function openDetail(axisKey) {
+  if (!lastAnalysis) return;
+  const axis = AXES.find(a => a.key === axisKey);
+  if (!axis) return;
+
+  const score = lastAnalysis.scores[axisKey] || 0;
+  const color = getScoreColor(score, config.seuil);
+
+  document.getElementById('detailIcon').textContent = axis.icon;
+  document.getElementById('detailTitle').textContent = axis.name;
+  document.getElementById('detailScore').textContent = score + '/10';
+  document.getElementById('detailScore').style.color = color;
+
+  const bar = document.getElementById('detailBar');
+  bar.style.background = color;
+  bar.style.width = '0%';
+  setTimeout(() => { bar.style.width = (score * 10) + '%'; }, 50);
+
+  document.getElementById('detailJustification').textContent =
+    (lastAnalysis.justifications && lastAnalysis.justifications[axisKey]) || '—';
+
+  document.getElementById('detailFull').textContent =
+    (lastAnalysis.details && lastAnalysis.details[axisKey]) || 'Pas de détail disponible.';
+
+  const benchSection = document.getElementById('detailBenchmarkSection');
+  const benchList = document.getElementById('detailBenchmarkList');
+  benchList.innerHTML = '';
+
+  const benchmarks = lastAnalysis.benchmark || [];
+  if (axisKey === 'fraicheur' || benchmarks.length > 0) {
+    benchSection.style.display = 'block';
+    if (benchmarks.length === 0) {
+      benchList.innerHTML = '<div class="benchmark-empty">Aucune solution concurrente identifiée — terrain vierge.</div>';
+    } else {
+      benchmarks.forEach(b => {
+        const item = document.createElement('div');
+        item.className = 'benchmark-item';
+        const safeName = esc(b.nom || '?');
+        const safeDesc = esc(b.desc || '');
+        const link = b.url ? `<a class="benchmark-name" href="${safeUrl(b.url)}" target="_blank" rel="noopener noreferrer">${safeName} ↗</a>` : `<div class="benchmark-name">${safeName}</div>`;
+        item.innerHTML = link + `<div class="benchmark-desc">${safeDesc}</div>`;
+        benchList.appendChild(item);
+      });
+    }
+  } else {
+    benchSection.style.display = 'none';
+  }
+
+  document.getElementById('detailOverlay').classList.add('open');
+}
+
+function closeDetail() {
+  document.getElementById('detailOverlay').classList.remove('open');
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeDetail();
+    closeBrief();
+    closeStoryboard();
+    closeMortem();
+    const settings = document.getElementById('settingsOverlay');
+    if (settings.classList.contains('open')) toggleSettings();
+  }
+});
+
+// ─── INIT ───
+loadConfigUI();
+</script>
+</body>
+</html>
