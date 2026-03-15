@@ -1777,11 +1777,11 @@ let config = {
 };
 
 const AXES = [
-  { key: 'intensite_probleme', name: 'Intensité du problème', icon: '🎯', desc: 'Pain point fort, fréquent et partagé' },
-  { key: 'potentiel_valeur', name: 'Potentiel de valeur', icon: '💡', desc: 'Gain tangible et mesurable' },
-  { key: 'faisabilite_format', name: 'Faisabilité format', icon: '🧩', desc: 'Proto/démo faisable en 5-10 min' },
-  { key: 'fraicheur', name: 'Fraîcheur', icon: '💎', desc: 'Angle neuf, pas vu 50 fois' },
-  { key: 'sobriete_sens', name: 'Sens & Sobriété', icon: '🌱', desc: 'Vrai service, proportionné, pas de bullshit' }
+  { key: 'probleme_partage', name: 'Problème partagé', icon: '🎯', desc: 'Ce problème touche beaucoup de monde, souvent et fort' },
+  { key: 'valeur_creee', name: 'Valeur créée', icon: '💡', desc: 'La solution apporte un gain concret et mesurable' },
+  { key: 'faisabilite', name: 'Faisabilité', icon: '🧩', desc: 'Réaliste en tech, RGPD, cyber, délai' },
+  { key: 'differenciation', name: 'Différenciation', icon: '💎', desc: "Ça n'existe pas encore ou ça fait vraiment mieux" },
+  { key: 'necessite_numerique', name: 'Nécessité numérique', icon: '🌱', desc: 'Le digital est la bonne réponse, pas juste un réflexe de plus' }
 ];
 
 // ─── SECURITY UTILS ───
@@ -1997,36 +1997,36 @@ L'objectif n'est PAS de savoir si l'IA est la bonne solution. L'objectif est de 
 ${axesDesc}
 
 CONSIGNES DE NOTATION :
-- "Intensité du problème" : un irritant quotidien vécu par beaucoup = note haute. Un "ça serait cool si..." = note basse.
-- "Potentiel de valeur" : du temps gagné, de l'argent économisé, des erreurs évitées, un confort net = note haute. Valeur floue ou marginale = note basse.
-- "Faisabilité format" : on peut montrer un résultat concret en 5-10 min = note haute. Trop complexe ou trop trivial = note basse.
-- "Fraîcheur" : angle neuf, hack inattendu, problème dont personne ne parle = note haute. Vu et revu partout = note basse.
-- "Sens & Sobriété" : sois exigeant. Vrai service rendu, proportionné au problème, dont on peut être fiers = note haute. Gadget inutile, bullshit qui gaspille des ressources = note basse.
+- "Problème partagé" : un irritant quotidien vécu par beaucoup = note haute. Un problème de niche ou un "ça serait cool si..." = note basse.
+- "Valeur créée" : du temps gagné, de l'argent économisé, des erreurs évitées, un confort net = note haute. Valeur floue ou marginale = note basse.
+- "Faisabilité" : réaliste en tech, RGPD, cyber et délai, on peut montrer un résultat concret rapidement = note haute. Trop complexe, trop risqué juridiquement ou trop trivial = note basse.
+- "Différenciation" : angle neuf, rien d'équivalent sur le marché, ou nettement mieux que l'existant = note haute. Vu et revu, déjà 10 apps qui le font = note basse.
+- "Nécessité numérique" : le digital est clairement la bonne réponse, vrai service proportionné au problème = note haute. Un process, une réunion ou un post-it suffirait, gadget inutile qui gaspille des ressources = note basse.
 
 Réponds UNIQUEMENT avec un JSON valide (pas de markdown, pas de backticks), format :
 {
   "titre": "Titre court du problème pitché",
   "resume": "1 phrase résumant le problème",
   "scores": {
-    "intensite_probleme": <1-10>,
-    "potentiel_valeur": <1-10>,
-    "faisabilite_format": <1-10>,
-    "fraicheur": <1-10>,
-    "sobriete_sens": <1-10>
+    "probleme_partage": <1-10>,
+    "valeur_creee": <1-10>,
+    "faisabilite": <1-10>,
+    "differenciation": <1-10>,
+    "necessite_numerique": <1-10>
   },
   "justifications": {
-    "intensite_probleme": "1 phrase courte",
-    "potentiel_valeur": "1 phrase courte",
-    "faisabilite_format": "1 phrase courte",
-    "fraicheur": "1 phrase courte",
-    "sobriete_sens": "1 phrase courte"
+    "probleme_partage": "1 phrase courte",
+    "valeur_creee": "1 phrase courte",
+    "faisabilite": "1 phrase courte",
+    "differenciation": "1 phrase courte",
+    "necessite_numerique": "1 phrase courte"
   },
   "details": {
-    "intensite_probleme": "2-4 phrases : qui est touché, à quelle fréquence, quelle intensité de douleur",
-    "potentiel_valeur": "2-4 phrases : quel gain concret, pour qui, mesurable comment",
-    "faisabilite_format": "2-4 phrases : est-ce faisable en 5-10 min, quel hack possible, quel résultat montrable",
-    "fraicheur": "2-4 phrases : paysage existant, ce qui a déjà été fait, en quoi cet angle est neuf (ou pas)",
-    "sobriete_sens": "2-4 phrases : utilité réelle, proportionnalité, impact environnemental/sociétal"
+    "probleme_partage": "2-4 phrases : qui est touché, combien de personnes, à quelle fréquence, quelle intensité",
+    "valeur_creee": "2-4 phrases : quel gain concret, pour qui, mesurable comment",
+    "faisabilite": "2-4 phrases : réalisme tech, contraintes RGPD/cyber, délai, quel résultat montrable rapidement",
+    "differenciation": "2-4 phrases : paysage existant, ce qui a déjà été fait, en quoi cet angle est neuf (ou pas)",
+    "necessite_numerique": "2-4 phrases : le digital est-il la bonne réponse, proportionnalité, une solution non-numérique suffirait-elle"
   },
   "benchmark": [
     {"nom": "Nom de la solution existante", "url": "https://...", "desc": "1 phrase sur ce que ça fait et en quoi c'est similaire ou différent"}
